@@ -281,6 +281,39 @@ def T(key):
 
 st.set_page_config(page_title="📖 単語暗記 | 未来塾", layout="centered")
 
+# ── グローバルフォント設定 ──────────────────────
+st.markdown("""
+<style>
+/* Google Fonts: Noto Sans JP（日本語）+ Noto Sans SC（簡体字中国語）+ Noto Sans（英語） */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans:wght@400;700&display=swap');
+
+/* アプリ全体に適用 */
+html, body, [class*="css"], .stMarkdown, .stText,
+.stButton > button, .stSelectbox, .stTextInput > div > input,
+.stCaption, .stSuccess, .stInfo, .stWarning, .stError {
+    font-family:
+        'Noto Sans JP',
+        'Noto Sans SC',
+        'Noto Sans',
+        sans-serif !important;
+}
+
+/* カード表示（render_card_front / render_card_back） */
+.card-word {
+    font-family: 'Noto Sans', 'Noto Sans JP', 'Noto Sans SC', sans-serif !important;
+    font-weight: 700;
+}
+.card-meaning, .card-reading, .card-example {
+    font-family: 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans', sans-serif !important;
+}
+
+/* タイムアタック・ランキング結果 */
+.stMarkdown p, .stMarkdown div, .stMarkdown span {
+    font-family: 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans', sans-serif !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ─────────────────────────────
 # 接続
 # ─────────────────────────────
