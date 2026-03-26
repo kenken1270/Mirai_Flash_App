@@ -610,96 +610,125 @@ def load_due_cards(username: str, set_id: int) -> list:
     return combined
 
 
-def is_english_mode(card: dict) -> bool:
-    """英語系カテゴリかどうかを判定する。
-    英語系 → 読み・発音は問題面に出さず、回答面にのみ表示する。
-    日本語系（JLPT・日本語・国語）→ 読みを問題面に表示する。
-    """
-    JP_CATEGORIES = {"JLPT", "日本語", "国語"}
-    return card.get("category", "") not in JP_CATEGORIES
+def render_card_front(card: dict, lang: str = "ja") -> None:
+    category = card.get("category", "")
 
-
-def render_card_front(card: dict) -> None:
-    """
-    カード問題面を描画する（show_study / show_time_attack 共通）。
-    - 常に表示: word（単語・漢字）
-    - 英語系の場合: reading / phonetic は表示しない
-    - 日本語系の場合: reading を word の下に表示する
-    """
-    word = card.get("word", "")
-    reading = card.get("reading", "")
-    english = is_english_mode(card)
-
-    if english or not reading:
-        # 英語系: 単語のみ
+    # みんなの日本語カテゴリ：表面は中国語
+    if category == "みんなの日本語":
+        word_display = card.get("meaning_zh", "")
         st.markdown(
             f"""
-            <div class="card-front">
-                <div class="card-word">{word}</div>
+        <div class="card-front">
+            <div class="card-word" style="font-size:2rem; font-weight:700; text-align:center; padding:1rem 0;">
+                {word_display}
             </div>
-            """,
+        </div>
+        """,
             unsafe_allow_html=True,
         )
     else:
-        # 日本語系: 漢字 + よみがな
-        st.markdown(
-            f"""
+        # 英語カード：表面は英単語
+        word = card.get("word", "")
+        reading = card.get("reading", "")
+        if reading and reading != word:
+            st.markdown(
+                f"""
             <div class="card-front">
-                <div class="card-word">{word}</div>
-                <div class="card-reading">{reading}</div>
+                <div class="card-word" style="font-size:2.2rem; font-weight:700; text-align:center; padding:0.5rem 0;">
+                    {word}
+                </div>
+                <div class="card-reading" style="font-size:1rem; color:#888; text-align:center;">
+                    {reading}
+                </div>
             </div>
             """,
-            unsafe_allow_html=True,
-        )
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                f"""
+            <div class="card-front">
+                <div class="card-word" style="font-size:2.2rem; font-weight:700; text-align:center; padding:1rem 0;">
+                    {word}
+                </div>
+            </div>
+            """,
+                unsafe_allow_html=True,
+            )
 
 
-def render_card_back(card: dict) -> None:
-    meaning = card.get("meaning", "")
-    reading = card.get("reading", "")
-    phonetic = card.get("phonetic", "")
-    meaning_zh = card.get("meaning_zh", "")
-    example = card.get("example", "")
-    english = is_english_mode(card)
+def render_card_back(card: dict, lang: str = "ja") -> None:
+    category = card.get("category", "")
 
-    reading_html = ""
-    phonetic_html = ""
-    if english:
+    # みんなの日本語カテゴリ：裏面は日本語＋読み＋品詞
+    if category == "みんなの日本語":
+        word = card.get("word", "")
+        reading = card.get("reading", "")
+        meaning = card.get("meaning", "")  # 品詞
+        accent = card.get("phonetic", "")  # アクセント番号
+
+        html = f"""
+        <div class="card-back" style="text-align:center; padding:1rem 0;">
+            <div class="card-word" style="font-size:2rem; font-weight:700;">
+                {word}
+            </div>
+        """
         if reading:
-            reading_html = (
-                f"<div style='font-size:1rem; color:#667eea; margin-top:8px;'>"
-                f"{T('reading_label')}{reading}</div>"
-            )
+            html += f"""
+            <div class="card-reading" style="font-size:1.1rem; color:#555; margin-top:0.3rem;">
+                {reading}
+                {"　" + accent if accent else ""}
+            </div>
+            """
+        if meaning:
+            html += f"""
+            <div class="card-meaning" style="font-size:0.95rem; color:#888; margin-top:0.5rem;">
+                {meaning}
+            </div>
+            """
+        html += "</div>"
+        st.markdown(html, unsafe_allow_html=True)
+
+    else:
+        # 英語カード：裏面は意味＋発音記号＋中国語訳＋例文
+        meaning = card.get("meaning", "")
+        reading = card.get("reading", "")
+        phonetic = card.get("phonetic", "")
+        meaning_zh = card.get("meaning_zh", "")
+        example = card.get("example", "")
+
+        html = f"""
+        <div class="card-back" style="text-align:center; padding:1rem 0;">
+            <div class="card-meaning" style="font-size:1.5rem; font-weight:700;">
+                {meaning}
+            </div>
+        """
+        if reading:
+            html += f"""
+            <div class="card-reading" style="font-size:1rem; color:#555; margin-top:0.4rem;">
+                読み：{reading}
+            </div>
+            """
         if phonetic:
-            phonetic_html = (
-                f"<div style='font-size:0.9rem; color:#888; margin-top:4px;'>"
-                f"{T('phonetic_label')}{phonetic}</div>"
-            )
-
-    zh_html = ""
-    if meaning_zh:
-        zh_html = (
-            f"<div style='font-size:0.95rem; color:#e06c00; margin-top:6px;'>"
-            f"{T('zh_meaning_label')}{meaning_zh}</div>"
-        )
-
-    example_html = ""
-    if example:
-        example_html = (
-            f"<div class='card-example'>{T('example_lbl')}{example}</div>"
-        )
-
-    st.markdown(
-        f"""
-        <div class="card-back">
-            <div class="card-meaning">💡 {meaning}</div>
-            {reading_html}
-            {phonetic_html}
-            {zh_html}
-            {example_html}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            html += f"""
+            <div class="card-phonetic" style="font-size:1rem; color:#777; margin-top:0.2rem;">
+                {phonetic}
+            </div>
+            """
+        if meaning_zh:
+            html += f"""
+            <div class="card-meaning-zh" style="font-size:1.1rem; color:#e05a00; margin-top:0.5rem;">
+                🇨🇳 {meaning_zh}
+            </div>
+            """
+        if example:
+            html += f"""
+            <div class="card-example" style="font-size:0.9rem; color:#888; margin-top:0.6rem; font-style:italic;">
+                {example}
+            </div>
+            """
+        html += "</div>"
+        st.markdown(html, unsafe_allow_html=True)
 
 
 # ─────────────────────────────
