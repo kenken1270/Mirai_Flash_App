@@ -281,19 +281,19 @@ def T(key):
 
 st.set_page_config(page_title="📖 単語暗記 | 未来塾", layout="centered")
 
-# ── グローバルフォント設定 ──────────────────────
-st.markdown("""
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<style>
-/*
-  ポイント: * セレクタは使わない。
-  Streamlit内部のSVGアイコン（expanderの▶など）を
-  壊さないよう、テキスト要素のみに限定して指定する。
-*/
+# ── フォント読み込み（linkタグ単独）──────────────
+st.markdown(
+    '<link rel="preconnect" href="https://fonts.googleapis.com">'
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP'
+    ':wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700'
+    '&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">',
+    unsafe_allow_html=True,
+)
 
-/* メインコンテンツエリア */
+# ── フォント適用CSS（styleタグ単独）──────────────
+st.markdown("""
+<style>
 .main .block-container,
 .main .block-container p,
 .main .block-container span,
@@ -304,8 +304,6 @@ st.markdown("""
 .main .block-container h3 {
     font-family: 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans', sans-serif !important;
 }
-
-/* Streamlitウィジェット: テキスト系のみ */
 [data-testid="stMarkdownContainer"] *,
 [data-testid="stText"],
 [data-testid="stCaption"],
@@ -318,15 +316,11 @@ st.markdown("""
 [data-testid="stBaseButton-secondary"] p {
     font-family: 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans', sans-serif !important;
 }
-
-/* カスタムHTMLカード */
 .card-front, .card-back,
 .card-word, .card-reading,
 .card-meaning, .card-example {
     font-family: 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans', sans-serif !important;
 }
-
-/* インラインstyleのdiv（称号・バッジなど） */
 .stMarkdown div[style],
 .stMarkdown span[style] {
     font-family: 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans', sans-serif !important;
