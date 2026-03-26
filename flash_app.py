@@ -614,11 +614,11 @@ def render_card_front(card: dict, lang: str = "ja") -> None:
     category = str(card.get("category", ""))
 
     if "みんなの日本語" in category:
-        # ── 問題面：中国語訳を大きく表示 ──
-        meaning_zh = card.get("meaning_zh", "")
+        # 問題面：meaning（＝中国語訳）を大きく表示
+        meaning = card.get("meaning", "")
         st.markdown(f"""
 <div style="
-    background: linear-gradient(135deg,#fff9f0,#fff3e0);
+    background:linear-gradient(135deg,#fff9f0,#fff3e0);
     border-radius:16px;
     padding:2.5rem 1.5rem;
     text-align:center;
@@ -626,14 +626,13 @@ def render_card_front(card: dict, lang: str = "ja") -> None:
     margin:0.5rem 0;">
   <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">問題</div>
   <div style="font-size:2.2rem;font-weight:700;color:#1a1a1a;line-height:1.4;">
-    {meaning_zh}
+    {meaning}
   </div>
   <div style="font-size:0.85rem;color:#bbb;margin-top:1rem;">日本語で何と言いますか？</div>
 </div>
 """, unsafe_allow_html=True)
 
     else:
-        # ── 問題面：英単語を表示 ──
         word = card.get("word", "")
         reading = card.get("reading", "")
         reading_html = (
@@ -662,10 +661,10 @@ def render_card_back(card: dict, lang: str = "ja") -> None:
     category = str(card.get("category", ""))
 
     if "みんなの日本語" in category:
-        # ── 答え面：日本語＋読み＋アクセント＋品詞 ──
+        # 答え面：日本語（word）＋読み＋アクセント＋品詞（meaning_zh）
         word = card.get("word", "")
         reading = card.get("reading", "")
-        meaning = card.get("meaning", "")  # 品詞〈名〉〈動I〉など
+        pos = card.get("meaning_zh", "")  # 品詞
         accent = card.get("phonetic", "")  # アクセント番号
 
         accent_html = (
@@ -674,8 +673,8 @@ def render_card_back(card: dict, lang: str = "ja") -> None:
             else ""
         )
         pos_html = (
-            f'<div style="font-size:0.9rem;color:#888;margin-top:0.5rem;">{meaning}</div>'
-            if meaning
+            f'<div style="font-size:0.9rem;color:#888;margin-top:0.5rem;">{pos}</div>'
+            if pos
             else ""
         )
 
@@ -699,7 +698,7 @@ def render_card_back(card: dict, lang: str = "ja") -> None:
 """, unsafe_allow_html=True)
 
     else:
-        # ── 答え面：日本語訳＋発音記号＋中国語訳＋例文 ──
+        # 英語カード：答え面
         meaning = card.get("meaning", "")
         reading = card.get("reading", "")
         phonetic = card.get("phonetic", "")
