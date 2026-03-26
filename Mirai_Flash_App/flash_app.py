@@ -137,6 +137,15 @@ TRANSLATIONS = {
         "rank_word_times": "### ⏱️ 単語別タイム",
         "rank_you": " 👈 あなた",
         "rank_q_suffix": "問",
+        "word_list_title": "📋 今日の単語リスト",
+        "word_list_sub": "まずこの単語を覚えてから、チェックに進もう！",
+        "word_list_no": "No.",
+        "word_list_word": "単語",
+        "word_list_reading": "読み",
+        "word_list_meaning": "意味",
+        "word_list_start": "✅ 覚えた！単語チェックをはじめる",
+        "word_list_back": "🏠 ホームに戻る",
+        "word_list_note": "💡 ノートに書いて覚えるときはこのリストを見ながら練習しよう！",
     },
     "zh": {
         "app_title": "📖 单词记忆 | 未来塾",
@@ -267,6 +276,15 @@ TRANSLATIONS = {
         "rank_word_times": "### ⏱️ 各题用时",
         "rank_you": " 👈 你",
         "rank_q_suffix": "题",
+        "word_list_title": "📋 今日的单词列表",
+        "word_list_sub": "先记住这些单词，再开始测验！",
+        "word_list_no": "No.",
+        "word_list_word": "单词",
+        "word_list_reading": "读音",
+        "word_list_meaning": "意思",
+        "word_list_start": "✅ 记住了！开始单词测验",
+        "word_list_back": "🏠 返回首页",
+        "word_list_note": "💡 想用笔记本抄写的同学，可以对照这个列表练习！",
     },
 }
 
@@ -753,6 +771,7 @@ for key, default in [
     ("flash_mode", "home"),
     ("show_settings", False),
     ("flash_queue", []),
+    ("word_list_queue", []),
     ("flash_index", 0),
     ("flash_show_answer", False),
     ("flash_session_results", []),
@@ -1027,10 +1046,11 @@ def show_home(username):
             queue = load_due_cards(username, selected_set_id)
             if queue:
                 st.session_state["flash_queue"] = queue
+                st.session_state["word_list_queue"] = queue
                 st.session_state["flash_index"] = 0
                 st.session_state["flash_show_answer"] = False
                 st.session_state["flash_session_results"] = []
-                st.session_state["flash_mode"] = "study"
+                st.session_state["flash_mode"] = "word_list"
                 st.rerun()
             else:
                 st.warning("カードが見つかりませんでした。")
@@ -2060,6 +2080,121 @@ def show_ranking():
             st.rerun()
 
 
+def show_word_list():
+    """今日の単語一覧ページ"""
+    queue = st.session_state.get("word_list_queue", [])
+    username = st.session_state["flash_user"]
+
+    st.markdown(f"## {T('word_list_title')}")
+    st.caption(T("word_list_sub"))
+    st.markdown(T("word_list_note"))
+    st.markdown("---")
+
+    # カテゴリ判定（最初のカードで代表判定）
+    category = str(queue[0].get("category", "")) if queue else ""
+    is_mnn = "みんなの日本語" in category
+
+    # テーブルヘッダー
+    if is_mnn:
+        # みんなの日本語：中国語→日本語
+        header_cols = st.columns([1, 3, 3, 3])
+        header_cols[0].markdown(f"**{T('word_list_no')}**")
+        header_cols[1].markdown("**中国語（問題）**")
+        header_cols[2].markdown(f"**{T('word_list_word')}（答え）**")
+        header_cols[3].markdown(f"**{T('word_list_reading')}**")
+    else:
+        # 英検：英語→日本語
+        header_cols = st.columns([1, 3, 3, 3])
+        header_cols[0].markdown(f"**{T('word_list_no')}**")
+        header_cols[1].markdown(f"**{T('word_list_word')}**")
+        header_cols[2].markdown(f"**{T('word_list_meaning')}**")
+        header_cols[3].markdown("**発音 / 読み**")
+
+    st.markdown("<hr style='margin:4px 0 8px 0;'>", unsafe_allow_html=True)
+
+    # 単語行
+    for i, card in enumerate(queue):
+        row_bg = "#f8f9ff" if i % 2 == 0 else "#ffffff"
+        cols = st.columns([1, 3, 3, 3])
+
+        if is_mnn:
+            meaning_zh = card.get("meaning", "")    # 中国語（問題）
+            word       = card.get("word", "")        # 日本語（答え）
+            reading    = card.get("reading", "")
+            accent     = card.get("phonetic", "")
+            reading_str = f"{reading}　{accent}" if accent else reading
+
+            cols[0].markdown(
+                f"<div style='background:{row_bg};padding:6px 4px;"
+                f"border-radius:8px;text-align:center;color:#888;"
+                f"font-size:0.85rem;'>{i+1}</div>",
+                unsafe_allow_html=True
+            )
+            cols[1].markdown(
+                f"<div style='background:{row_bg};padding:6px 8px;"
+                f"border-radius:8px;font-weight:bold;color:#e05a00;"
+                f"font-size:1rem;'>{meaning_zh}</div>",
+                unsafe_allow_html=True
+            )
+            cols[2].markdown(
+                f"<div style='background:{row_bg};padding:6px 8px;"
+                f"border-radius:8px;font-weight:bold;color:#1a1a1a;"
+                f"font-size:1rem;'>{word}</div>",
+                unsafe_allow_html=True
+            )
+            cols[3].markdown(
+                f"<div style='background:{row_bg};padding:6px 8px;"
+                f"border-radius:8px;color:#555;font-size:0.9rem;'>"
+                f"{reading_str}</div>",
+                unsafe_allow_html=True
+            )
+        else:
+            word     = card.get("word", "")
+            meaning  = card.get("meaning", "")
+            phonetic = card.get("phonetic", "")
+            reading  = card.get("reading", "")
+            sub_str  = phonetic if phonetic else reading
+
+            cols[0].markdown(
+                f"<div style='background:{row_bg};padding:6px 4px;"
+                f"border-radius:8px;text-align:center;color:#888;"
+                f"font-size:0.85rem;'>{i+1}</div>",
+                unsafe_allow_html=True
+            )
+            cols[1].markdown(
+                f"<div style='background:{row_bg};padding:6px 8px;"
+                f"border-radius:8px;font-weight:bold;color:#1a1a1a;"
+                f"font-size:1.05rem;'>{word}</div>",
+                unsafe_allow_html=True
+            )
+            cols[2].markdown(
+                f"<div style='background:{row_bg};padding:6px 8px;"
+                f"border-radius:8px;font-weight:bold;color:#333;"
+                f"font-size:1rem;'>{meaning}</div>",
+                unsafe_allow_html=True
+            )
+            cols[3].markdown(
+                f"<div style='background:{row_bg};padding:6px 8px;"
+                f"border-radius:8px;color:#777;font-size:0.85rem;'>"
+                f"{sub_str}</div>",
+                unsafe_allow_html=True
+            )
+
+    st.markdown("---")
+
+    # ボタン
+    col_back, col_start = st.columns([1, 2])
+    with col_back:
+        if st.button(T("word_list_back"), use_container_width=True):
+            st.session_state["flash_mode"] = "home"
+            st.rerun()
+    with col_start:
+        if st.button(T("word_list_start"), type="primary",
+                     use_container_width=True):
+            st.session_state["flash_mode"] = "study"
+            st.rerun()
+
+
 def show_result():
     results = st.session_state["flash_session_results"]
     username = st.session_state["flash_user"]
@@ -2401,6 +2536,8 @@ def show_result():
 mode = st.session_state["flash_mode"]
 if mode == "home":
     show_home(username)
+elif mode == "word_list":
+    show_word_list()
 elif mode == "study":
     show_study(username)
 elif mode == "time_attack":
