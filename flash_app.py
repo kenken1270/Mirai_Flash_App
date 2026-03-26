@@ -361,32 +361,35 @@ def sm2_update(quality, ease_factor, interval, repetitions):
 # save_review（review_logs に upsert）
 # ─────────────────────────────
 def save_review(username, cid, q, new_ef, new_iv, new_rp, next_date):
+    # cidがNoneまたは0の場合は外部キー制約違反になるためスキップ
+    if not cid:
+        return
+
     supabase = get_supabase()
+    safe_username = str(username) if username else "admin"
+    safe_cid = int(cid)
+    data = {
+        "username":         safe_username,
+        "flashcard_id":     safe_cid,
+        "quality":          int(q) if q is not None else 0,
+        "ease_factor":      float(new_ef) if new_ef is not None else 2.5,
+        "interval_days":    int(new_iv) if new_iv is not None else 1,
+        "repetitions":      int(new_rp) if new_rp is not None else 1,
+        "next_review_date": str(next_date) if next_date else date.today().isoformat(),
+    }
     existing = (
         supabase.table("review_logs")
         .select("id")
-        .eq("username", username)
-        .eq("flashcard_id", cid)
+        .eq("username", safe_username)
+        .eq("flashcard_id", safe_cid)
         .execute()
     )
-
-    data = {
-        "username": username,
-        "flashcard_id": cid,
-        "quality": q,
-        "ease_factor": new_ef,
-        "interval_days": new_iv,
-        "repetitions": new_rp,
-        "next_review_date": next_date,
-    }
-
     if existing.data:
-        supabase.table("review_logs").update(data).eq("username", username).eq(
-            "flashcard_id", cid
+        supabase.table("review_logs").update(data).eq("username", safe_username).eq(
+            "flashcard_id", safe_cid
         ).execute()
     else:
         supabase.table("review_logs").insert(data).execute()
-
     st.cache_data.clear()
 
 # ─────────────────────────────
