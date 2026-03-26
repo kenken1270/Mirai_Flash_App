@@ -310,6 +310,146 @@ def show_home(username):
     total_today = new_count + due_count
     if total_today == 0:
         st.success("🎉 今日の分は全部終わった！また明日！")
+
+        # ── 追加学習メニュー ────────────────────
+        st.markdown("#### 🌟 もっとやりたい人はここから！")
+
+        # 称号表示
+        total_xp = calc_total_xp(username)
+        level = calc_level(total_xp)
+        titles = {
+            1: ("🌱", "たんご の たまご"),
+            2: ("📖", "たんご の たまご+"),
+            3: ("⚡", "たんご の せんし"),
+            4: ("🔥", "たんご の たつじん"),
+            5: ("💎", "たんご の えいゆう"),
+            6: ("👑", "たんご の おう"),
+            7: ("🌟", "たんご の でんせつ"),
+        }
+        icon, title = titles.get(min(level, 7), ("🌟", "たんご の でんせつ"))
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg,#667eea,#764ba2);
+            border-radius:16px; padding:14px 20px; color:white;
+            display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+            <span style="font-size:2rem;">{icon}</span>
+            <div>
+                <div style="font-size:0.8rem; opacity:0.85;">現在の称号</div>
+                <div style="font-size:1.2rem; font-weight:bold;">
+                    Lv.{level} {title}
+                </div>
+                <div style="font-size:0.78rem; opacity:0.75;">
+                    累計 {total_xp} XP
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # 3つの追加学習ボタン
+        ex1, ex2, ex3 = st.columns(3)
+
+        with ex1:
+            st.markdown("""
+            <div style="background:#ff6b6b; border-radius:14px;
+                padding:14px 8px; text-align:center; color:white;
+                font-weight:bold; margin-bottom:6px;">
+                <div style="font-size:1.4rem;">🔁</div>
+                <div style="font-size:0.9rem;">苦手だけ</div>
+                <div style="font-size:0.75rem; opacity:0.9;">
+                    復習する
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("苦手を復習", key="extra_weak", use_container_width=True):
+                cards = load_flashcards_by_set(selected_set_id)
+                logs = load_review_logs(username)
+                # quality < 4 のカードIDを抽出（最新ログ基準）
+                latest = {}
+                for row in logs:
+                    cid = row["flashcard_id"]
+                    if cid not in latest or row["reviewed_at"] > latest[cid]["reviewed_at"]:
+                        latest[cid] = row
+                weak_ids = {
+                    cid for cid, row in latest.items()
+                    if row.get("quality", 5) < 4
+                }
+                weak_cards = [c for c in cards if c["id"] in weak_ids]
+                if weak_cards:
+                    random.shuffle(weak_cards)
+                    st.session_state["flash_queue"] = weak_cards
+                    st.session_state["flash_index"] = 0
+                    st.session_state["flash_show_answer"] = False
+                    st.session_state["flash_session_results"] = []
+                    st.session_state["flash_mode"] = "study"
+                    st.rerun()
+                else:
+                    st.success("🎉 苦手な単語はありません！完璧です！")
+
+        with ex2:
+            st.markdown("""
+            <div style="background:#667eea; border-radius:14px;
+                padding:14px 8px; text-align:center; color:white;
+                font-weight:bold; margin-bottom:6px;">
+                <div style="font-size:1.4rem;">🚀</div>
+                <div style="font-size:0.9rem;">先取り</div>
+                <div style="font-size:0.75rem; opacity:0.9;">
+                    新しい単語へ
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("先取りする", key="extra_new", use_container_width=True):
+                cards = load_flashcards_by_set(selected_set_id)
+                logs = load_review_logs(username)
+                learned_ids = {row["flashcard_id"] for row in logs}
+                new_cards = [c for c in cards if c["id"] not in learned_ids]
+                if new_cards:
+                    random.shuffle(new_cards)
+                    st.session_state["flash_queue"] = new_cards[:10]
+                    st.session_state["flash_index"] = 0
+                    st.session_state["flash_show_answer"] = False
+                    st.session_state["flash_session_results"] = []
+                    st.session_state["flash_mode"] = "study"
+                    st.rerun()
+                else:
+                    st.success("🏆 この教材は全単語制覇です！すごい！")
+
+        with ex3:
+            st.markdown("""
+            <div style="background:#00b09b; border-radius:14px;
+                padding:14px 8px; text-align:center; color:white;
+                font-weight:bold; margin-bottom:6px;">
+                <div style="font-size:1.4rem;">🎯</div>
+                <div style="font-size:0.9rem;">全部復習</div>
+                <div style="font-size:0.75rem; opacity:0.9;">
+                    全単語を通す
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("全部やる", key="extra_all", use_container_width=True):
+                cards = load_flashcards_by_set(selected_set_id)
+                if cards:
+                    random.shuffle(cards)
+                    st.session_state["flash_queue"] = cards
+                    st.session_state["flash_index"] = 0
+                    st.session_state["flash_show_answer"] = False
+                    st.session_state["flash_session_results"] = []
+                    st.session_state["flash_mode"] = "study"
+                    st.rerun()
+
+        # デイリーミッション（簡易版）
+        st.markdown("---")
+        streak = compute_learning_streak(username)
+        if streak >= 7:
+            st.markdown("""
+            <div style="background:linear-gradient(135deg,#f7971e,#ffd200);
+                border-radius:14px; padding:12px 16px; color:#333;
+                font-weight:bold; text-align:center;">
+                🌟 7日連続達成！XP×2ボーナス獲得中！
+            </div>
+            """, unsafe_allow_html=True)
+        elif streak >= 3:
+            st.info(f"🔥 {streak}日連続！あと{7-streak}日で7日連続ボーナス！")
+        else:
+            st.caption(f"💡 毎日続けると7日連続ボーナスXP×2が解放されます！")
     else:
         if st.button("✨ 今日の学習をはじめる！", type="primary", use_container_width=True):
             queue = load_due_cards(username, selected_set_id)
