@@ -215,6 +215,8 @@ for key, default in [
     ("flash_show_answer", False),
     ("flash_session_results", []),
     ("selected_set_id", None),
+    ("flash_timer_start", None),
+    ("flash_time_scores", []),
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
@@ -261,49 +263,6 @@ def show_home(username):
         border-radius:20px; padding:4px 14px;
         font-weight:bold; display:inline-block; margin:4px;
         font-size: 1rem;
-    }
-    /* 追加学習ボタン */
-    div[data-testid="stHorizontalBlock"]:has(
-        button[kind="secondary"]
-    ) > div:nth-child(1) > div > button {
-        background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 16px !important;
-        min-height: 100px !important;
-        font-size: 1rem !important;
-        font-weight: bold !important;
-        white-space: pre-wrap !important;
-        line-height: 1.6 !important;
-        box-shadow: 0 6px 16px rgba(238,90,36,0.35) !important;
-    }
-    div[data-testid="stHorizontalBlock"]:has(
-        button[kind="secondary"]
-    ) > div:nth-child(2) > div > button {
-        background: linear-gradient(135deg, #667eea, #764ba2) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 16px !important;
-        min-height: 100px !important;
-        font-size: 1rem !important;
-        font-weight: bold !important;
-        white-space: pre-wrap !important;
-        line-height: 1.6 !important;
-        box-shadow: 0 6px 16px rgba(102,126,234,0.4) !important;
-    }
-    div[data-testid="stHorizontalBlock"]:has(
-        button[kind="secondary"]
-    ) > div:nth-child(3) > div > button {
-        background: linear-gradient(135deg, #00b09b, #00d4aa) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 16px !important;
-        min-height: 100px !important;
-        font-size: 1rem !important;
-        font-weight: bold !important;
-        white-space: pre-wrap !important;
-        line-height: 1.6 !important;
-        box-shadow: 0 6px 16px rgba(0,176,155,0.35) !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -454,15 +413,23 @@ def show_home(username):
         ex1, ex2, ex3 = st.columns(3)
 
         with ex1:
+            st.markdown("""
+            <style>
+            div[data-testid="stButton"][id="btn_weak"] button {
+                background: linear-gradient(135deg,#ff6b6b,#ee5a24) !important;
+                color:white !important; border:none !important;
+                border-radius:16px !important; min-height:110px !important;
+                font-size:0.95rem !important; font-weight:bold !important;
+                white-space:pre-wrap !important; line-height:1.6 !important;
+            }
+            </style>
+            """, unsafe_allow_html=True)
             if st.button(
                 "🔁 苦手だけ復習\n\n答えが出なかった\n単語をもう一度",
-                key="extra_weak",
-                use_container_width=True,
-                type="secondary",
+                key="extra_weak", use_container_width=True
             ):
                 cards = load_flashcards_by_set(selected_set_id)
                 logs = load_review_logs(username)
-                # quality < 4 のカードIDを抽出（最新ログ基準）
                 latest = {}
                 for row in logs:
                     cid = row["flashcard_id"]
@@ -482,14 +449,12 @@ def show_home(username):
                     st.session_state["flash_mode"] = "study"
                     st.rerun()
                 else:
-                    st.success("🎉 苦手な単語はありません！完璧です！")
+                    st.success("🎉 苦手な単語はありません！")
 
         with ex2:
             if st.button(
                 "🚀 先取りチャレンジ\n\nまだ見ていない\n新しい単語へ",
-                key="extra_new",
-                use_container_width=True,
-                type="secondary",
+                key="extra_new", use_container_width=True
             ):
                 cards = load_flashcards_by_set(selected_set_id)
                 logs = load_review_logs(username)
@@ -504,14 +469,12 @@ def show_home(username):
                     st.session_state["flash_mode"] = "study"
                     st.rerun()
                 else:
-                    st.success("🏆 この教材は全単語制覇です！すごい！")
+                    st.success("🏆 全単語制覇！すごい！")
 
         with ex3:
             if st.button(
                 "🎯 全部通し復習\n\n教材の全単語を\nシャッフルで",
-                key="extra_all",
-                use_container_width=True,
-                type="secondary",
+                key="extra_all", use_container_width=True
             ):
                 cards = load_flashcards_by_set(selected_set_id)
                 if cards:
@@ -522,6 +485,56 @@ def show_home(username):
                     st.session_state["flash_session_results"] = []
                     st.session_state["flash_mode"] = "study"
                     st.rerun()
+
+        # ボタン色をCSSで一括適用（キー名で特定）
+        st.markdown("""
+        <style>
+        /* 苦手だけ復習 → 赤 */
+        [data-testid="stBaseButton-secondary"]:nth-of-type(1) {
+            background: linear-gradient(135deg,#ff6b6b,#ee5a24) !important;
+            color:white !important; border:none !important;
+            border-radius:16px !important; min-height:110px !important;
+            font-weight:bold !important; white-space:pre-wrap !important;
+            line-height:1.6 !important;
+            box-shadow: 0 6px 16px rgba(238,90,36,0.3) !important;
+        }
+        /* 先取り → 紫 */
+        [data-testid="stBaseButton-secondary"]:nth-of-type(2) {
+            background: linear-gradient(135deg,#667eea,#764ba2) !important;
+            color:white !important; border:none !important;
+            border-radius:16px !important; min-height:110px !important;
+            font-weight:bold !important; white-space:pre-wrap !important;
+            line-height:1.6 !important;
+            box-shadow: 0 6px 16px rgba(102,126,234,0.3) !important;
+        }
+        /* 全部通し → 緑 */
+        [data-testid="stBaseButton-secondary"]:nth-of-type(3) {
+            background: linear-gradient(135deg,#00b09b,#00d4aa) !important;
+            color:white !important; border:none !important;
+            border-radius:16px !important; min-height:110px !important;
+            font-weight:bold !important; white-space:pre-wrap !important;
+            line-height:1.6 !important;
+            box-shadow: 0 6px 16px rgba(0,176,155,0.3) !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # タイムアタックボタン
+        st.markdown("---")
+        if st.button(
+            "⚡ タイムアタック！\n\n10秒で答えろ！\nランキングに挑戦",
+            key="extra_ta", use_container_width=True, type="primary"
+        ):
+            cards = load_flashcards_by_set(selected_set_id)
+            if cards:
+                random.shuffle(cards)
+                st.session_state["flash_queue"] = cards[:10]
+                st.session_state["flash_index"] = 0
+                st.session_state["flash_show_answer"] = False
+                st.session_state["flash_time_scores"] = []
+                st.session_state["flash_timer_start"] = None
+                st.session_state["flash_mode"] = "time_attack"
+                st.rerun()
 
         # デイリーミッション（簡易版）
         st.markdown("---")
@@ -1019,6 +1032,334 @@ def load_cumulative_xp(username):
     return cumulative
 
 
+# Supabase SQL Editor で ta_scores テーブルを作成するときの例（手動実行）:
+# CREATE TABLE IF NOT EXISTS ta_scores (
+#   id SERIAL PRIMARY KEY,
+#   username TEXT NOT NULL,
+#   nickname TEXT NOT NULL DEFAULT 'なし',
+#   set_id INTEGER NOT NULL,
+#   total_score INTEGER NOT NULL,
+#   correct_count INTEGER NOT NULL,
+#   total_cards INTEGER NOT NULL,
+#   played_at TIMESTAMP DEFAULT NOW()
+# );
+
+
+def _record_ta_quality(username, card, quality):
+    logs = load_review_logs(username)
+    cid = card["id"]
+    latest = {}
+    for row in logs:
+        rid = row["flashcard_id"]
+        if rid not in latest or row["reviewed_at"] > latest[rid]["reviewed_at"]:
+            latest[rid] = row
+    if cid in latest:
+        row = latest[cid]
+        ef = float(row["ease_factor"])
+        iv = int(row["interval_days"])
+        rp = int(row["repetitions"])
+    else:
+        ef, iv, rp = 2.5, 1, 0
+    new_ef, new_iv, new_rp, next_date = sm2_update(quality, ef, iv, rp)
+    save_review(username, cid, quality, new_ef, new_iv, new_rp, next_date)
+
+
+def save_ta_score(username, nickname, set_id, total_score,
+                  correct_count, total_cards):
+    try:
+        sb = get_supabase()
+        sb.table("ta_scores").insert({
+            "username": username,
+            "nickname": nickname if nickname else username,
+            "set_id": set_id,
+            "total_score": total_score,
+            "correct_count": correct_count,
+            "total_cards": total_cards,
+        }).execute()
+        st.cache_data.clear()
+    except Exception as e:
+        st.warning(f"スコア保存エラー: {e}")
+
+
+@st.cache_data(ttl=30)
+def load_ta_ranking(set_id, limit=10):
+    try:
+        sb = get_supabase()
+        res = (
+            sb.table("ta_scores")
+            .select("nickname,total_score,correct_count,total_cards,played_at")
+            .eq("set_id", set_id)
+            .order("total_score", desc=True)
+            .limit(limit)
+            .execute()
+        )
+        return res.data if res.data else []
+    except:
+        return []
+
+
+def show_time_attack(username):
+    import time
+
+    queue = st.session_state["flash_queue"]
+    idx = st.session_state["flash_index"]
+
+    if idx >= len(queue):
+        st.session_state["flash_mode"] = "ranking"
+        st.rerun()
+
+    card = queue[idx]
+    total = len(queue)
+
+    # CSS
+    st.markdown("""
+    <style>
+    .timer-display {
+        font-size: 3rem; font-weight: bold;
+        text-align: center; color: #ff4b4b;
+        font-family: monospace;
+        text-shadow: 0 0 10px rgba(255,75,75,0.4);
+    }
+    .ta-card {
+        background: linear-gradient(135deg,#1a1a2e,#16213e);
+        border-radius: 20px; padding: 40px 24px;
+        text-align: center; color: white; margin: 12px 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .ta-word {
+        font-size: 2.8rem; font-weight: bold;
+        letter-spacing: 3px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # ヘッダー
+    col_p, col_h = st.columns([4, 1])
+    with col_p:
+        st.markdown(f'<div style="font-size:0.9rem;color:#888;">'
+                    f'⚡ タイムアタック {idx+1}/{total}</div>',
+                    unsafe_allow_html=True)
+        st.progress(idx / total)
+    with col_h:
+        if st.button("🏠", key="ta_home"):
+            st.session_state["flash_mode"] = "home"
+            st.rerun()
+
+    # タイマー開始
+    if st.session_state["flash_timer_start"] is None:
+        st.session_state["flash_timer_start"] = time.time()
+
+    elapsed = time.time() - st.session_state["flash_timer_start"]
+    remaining = max(0, 10 - elapsed)  # 10秒制限
+
+    # カード表示
+    st.markdown(f"""
+    <div class="ta-card">
+        <div style="font-size:0.9rem; opacity:0.6; margin-bottom:8px;">
+            ⚡ 意味を言えたら「わかった」を押そう！
+        </div>
+        <div class="ta-word">{card['word']}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # タイマー表示
+    st.markdown(
+        f'<div class="timer-display">{remaining:.1f}秒</div>',
+        unsafe_allow_html=True
+    )
+
+    if not st.session_state["flash_show_answer"]:
+        col_ok, col_ng = st.columns(2)
+        with col_ok:
+            if st.button("✅ わかった！", type="primary",
+                         use_container_width=True, key="ta_ok"):
+                score = max(0, int(remaining * 10))  # 残り時間×10点
+                st.session_state["flash_time_scores"].append({
+                    "word": card["word"],
+                    "meaning": card["meaning"],
+                    "time": round(10 - remaining, 1),
+                    "score": score,
+                    "result": "correct",
+                })
+                # SM-2に記録（バッチリ扱い）
+                _record_ta_quality(username, card, 5)
+                st.session_state["flash_index"] += 1
+                st.session_state["flash_timer_start"] = None
+                st.rerun()
+        with col_ng:
+            if st.button("❌ わからない", use_container_width=True,
+                         key="ta_ng"):
+                st.session_state["flash_show_answer"] = True
+                st.session_state["flash_time_scores"].append({
+                    "word": card["word"],
+                    "meaning": card["meaning"],
+                    "time": round(10 - remaining, 1),
+                    "score": 0,
+                    "result": "wrong",
+                })
+                _record_ta_quality(username, card, 0)
+                st.rerun()
+    else:
+        # 答え表示
+        st.markdown(f"""
+        <div style="background:white; border:3px solid #667eea;
+            border-radius:16px; padding:24px; text-align:center;
+            margin:12px 0;">
+            <div style="font-size:1.6rem; font-weight:bold; color:#333;">
+                💡 {card['meaning']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("➡️ 次へ", type="primary",
+                     use_container_width=True, key="ta_next"):
+            st.session_state["flash_index"] += 1
+            st.session_state["flash_show_answer"] = False
+            st.session_state["flash_timer_start"] = None
+            st.rerun()
+
+    # タイムオーバー処理
+    if remaining <= 0 and not st.session_state["flash_show_answer"]:
+        st.session_state["flash_show_answer"] = True
+        st.session_state["flash_time_scores"].append({
+            "word": card["word"],
+            "meaning": card["meaning"],
+            "time": 10.0,
+            "score": 0,
+            "result": "timeout",
+        })
+        _record_ta_quality(username, card, 0)
+        st.rerun()
+
+    # 自動更新（0.5秒ごと）— タイマー進行中かつ表面表示中のみ
+    if remaining > 0 and not st.session_state["flash_show_answer"]:
+        time.sleep(0.5)
+        st.rerun()
+
+
+def show_ranking():
+    username = st.session_state["flash_user"]
+    set_id = st.session_state.get("selected_set_id")
+    scores = st.session_state.get("flash_time_scores", [])
+    nickname = load_user_nickname(username)
+
+    # スコア集計
+    total_score = sum(s["score"] for s in scores)
+    correct_count = sum(1 for s in scores if s["result"] == "correct")
+    total_cards = len(scores)
+
+    # Supabaseに保存
+    if scores and set_id:
+        save_ta_score(username, nickname, set_id,
+                      total_score, correct_count, total_cards)
+
+    st.markdown("""
+    <style>
+    .rank-hero {
+        background: linear-gradient(135deg,#1a1a2e,#16213e);
+        border-radius: 24px; padding: 28px 20px;
+        text-align: center; color: white; margin-bottom: 20px;
+    }
+    .rank-score {
+        font-size: 3rem; font-weight: bold;
+        background: linear-gradient(135deg,#ffd200,#ff6b6b);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .rank-row {
+        display: flex; align-items: center;
+        padding: 10px 16px; border-radius: 12px;
+        margin: 6px 0; font-weight: bold;
+    }
+    .rank-1 { background: linear-gradient(135deg,#ffd200,#ffbe00); color:#333; }
+    .rank-2 { background: #c0c0c0; color: #333; }
+    .rank-3 { background: #cd7f32; color: white; }
+    .rank-other { background: #f5f5f5; color: #333; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # スコア表示
+    accuracy = correct_count / total_cards * 100 if total_cards > 0 else 0
+    st.markdown(f"""
+    <div class="rank-hero">
+        <div style="font-size:1rem; opacity:0.7; margin-bottom:4px;">
+            ⚡ タイムアタック結果
+        </div>
+        <div class="rank-score">{total_score} pts</div>
+        <div style="font-size:1rem; margin-top:8px;">
+            {correct_count}/{total_cards}問正解
+            （{accuracy:.0f}%）
+        </div>
+        <div style="font-size:0.85rem; opacity:0.7; margin-top:4px;">
+            🎮 {nickname if nickname else username} として記録
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 単語別タイム一覧
+    st.markdown("### ⏱️ 単語別タイム")
+    for s in scores:
+        icon = "✅" if s["result"] == "correct" else (
+                "⏰" if s["result"] == "timeout" else "❌")
+        color = "#00b09b" if s["result"] == "correct" else "#ff4b4b"
+        st.markdown(
+            f'<div style="display:flex; justify-content:space-between;'
+            f'padding:8px 12px; background:{color}22; border-radius:10px;'
+            f'margin:4px 0; font-size:0.9rem;">'
+            f'<span>{icon} <b>{s["word"]}</b> — {s["meaning"]}</span>'
+            f'<span style="color:{color}; font-weight:bold;">'
+            f'{s["score"]}pts ({s["time"]}秒)</span></div>',
+            unsafe_allow_html=True
+        )
+
+    # ランキング表示
+    st.markdown("---")
+    st.markdown("### 🏆 みんなのランキング（TOP10）")
+    ranking = load_ta_ranking(set_id) if set_id else []
+    if not ranking:
+        st.info("まだ記録がありません。あなたが1位になろう！")
+    else:
+        medals = ["🥇", "🥈", "🥉"]
+        for i, row in enumerate(ranking):
+            medal = medals[i] if i < 3 else f"{i+1}."
+            cls = ["rank-1", "rank-2", "rank-3"]
+            bg = cls[i] if i < 3 else "rank-other"
+            is_me = row["nickname"] == nickname
+            me_mark = " 👈 あなた" if is_me else ""
+            st.markdown(
+                f'<div class="rank-row {bg}">'
+                f'<span style="font-size:1.3rem; margin-right:12px;">{medal}</span>'
+                f'<span style="flex:1;">{row["nickname"]}</span>'
+                f'<span style="font-size:1.1rem;">{row["total_score"]} pts</span>'
+                f'<span style="font-size:0.8rem; margin-left:8px; opacity:0.7;">'
+                f'{row["correct_count"]}/{row["total_cards"]}問{me_mark}</span>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+    # ボタン
+    st.markdown("---")
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("🔁 もう一度タイムアタック",
+                     use_container_width=True):
+            cards = load_flashcards_by_set(set_id)
+            if cards:
+                random.shuffle(cards)
+                st.session_state["flash_queue"] = cards[:10]
+                st.session_state["flash_index"] = 0
+                st.session_state["flash_show_answer"] = False
+                st.session_state["flash_time_scores"] = []
+                st.session_state["flash_timer_start"] = None
+                st.session_state["flash_mode"] = "time_attack"
+                st.rerun()
+    with b2:
+        if st.button("🏠 ホームへ戻る",
+                     type="primary", use_container_width=True):
+            st.session_state["flash_mode"] = "home"
+            st.session_state["flash_time_scores"] = []
+            st.session_state["flash_timer_start"] = None
+            st.rerun()
+
+
 def show_result():
     results = st.session_state["flash_session_results"]
     username = st.session_state["flash_user"]
@@ -1352,5 +1693,9 @@ if mode == "home":
     show_home(username)
 elif mode == "study":
     show_study(username)
+elif mode == "time_attack":
+    show_time_attack(username)
+elif mode == "ranking":
+    show_ranking()
 elif mode == "result":
     show_result()
