@@ -358,19 +358,35 @@ def sm2_update(quality, ease_factor, interval, repetitions):
     return new_ef, new_interval, new_repetitions, next_date
 
 # ─────────────────────────────
-# save_review（変更なし）
+# save_review（review_logs に upsert）
 # ─────────────────────────────
-def save_review(username, flashcard_id, quality, ef, interval, reps, next_date):
-    sb = get_supabase()
-    sb.table("review_logs").insert({
+def save_review(username, cid, q, new_ef, new_iv, new_rp, next_date):
+    supabase = get_supabase()
+    existing = (
+        supabase.table("review_logs")
+        .select("id")
+        .eq("username", username)
+        .eq("flashcard_id", cid)
+        .execute()
+    )
+
+    data = {
         "username": username,
-        "flashcard_id": flashcard_id,
-        "quality": quality,
-        "ease_factor": ef,
-        "interval_days": interval,
-        "repetitions": reps,
+        "flashcard_id": cid,
+        "quality": q,
+        "ease_factor": new_ef,
+        "interval_days": new_iv,
+        "repetitions": new_rp,
         "next_review_date": next_date,
-    }).execute()
+    }
+
+    if existing.data:
+        supabase.table("review_logs").update(data).eq("username", username).eq(
+            "flashcard_id", cid
+        ).execute()
+    else:
+        supabase.table("review_logs").insert(data).execute()
+
     st.cache_data.clear()
 
 # ─────────────────────────────
