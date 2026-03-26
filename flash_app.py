@@ -509,9 +509,6 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
                 f"""
 <div class="card-front">
     <div class="card-word">{card['word']}</div>
-    <div class="card-reading" style="opacity:0.5; font-size:0.9rem;">
-        👆 意味を思い浮かべてみよう
-    </div>
 </div>
 """,
                 unsafe_allow_html=True,
