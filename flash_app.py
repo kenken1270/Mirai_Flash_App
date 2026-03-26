@@ -500,6 +500,104 @@ def load_due_cards(username, set_id):
     random.shuffle(combined)
     return combined
 
+
+def is_english_mode(card: dict) -> bool:
+    """英語系カテゴリかどうかを判定する。
+    英語系 → 読み・発音は問題面に出さず、回答面にのみ表示する。
+    日本語系（JLPT・日本語・国語）→ 読みを問題面に表示する。
+    """
+    JP_CATEGORIES = {"JLPT", "日本語", "国語"}
+    return card.get("category", "") not in JP_CATEGORIES
+
+
+def render_card_front(card: dict) -> None:
+    """
+    カード問題面を描画する（show_study / show_time_attack 共通）。
+    - 常に表示: word（単語・漢字）
+    - 英語系の場合: reading / phonetic は表示しない
+    - 日本語系の場合: reading を word の下に表示する
+    """
+    word = card.get("word", "")
+    reading = card.get("reading", "")
+    english = is_english_mode(card)
+
+    if english or not reading:
+        # 英語系: 単語のみ
+        st.markdown(
+            f"""
+            <div class="card-front">
+                <div class="card-word">{word}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        # 日本語系: 漢字 + よみがな
+        st.markdown(
+            f"""
+            <div class="card-front">
+                <div class="card-word">{word}</div>
+                <div class="card-reading">{reading}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def render_card_back(card: dict) -> None:
+    """
+    カード回答面を描画する（show_study / show_time_attack 共通）。
+    - 常に表示: meaning（意味）
+    - 英語系の場合: reading + phonetic を意味の下に表示
+    - 日本語系の場合: reading は問題面に既出なので表示しない
+    - 両方: meaning_zh（中国語訳）と example（例文）があれば表示
+    """
+    meaning = card.get("meaning", "")
+    reading = card.get("reading", "")
+    phonetic = card.get("phonetic", "")
+    meaning_zh = card.get("meaning_zh", "")
+    example = card.get("example", "")
+    english = is_english_mode(card)
+
+    reading_html = ""
+    phonetic_html = ""
+    if english:
+        if reading:
+            reading_html = f"""
+            <div style="font-size:1rem; color:#667eea; margin-top:8px;">
+                {T("reading_label")}{reading}
+            </div>"""
+        if phonetic:
+            phonetic_html = f"""
+            <div style="font-size:0.9rem; color:#888; margin-top:4px;">
+                {T("phonetic_label")}{phonetic}
+            </div>"""
+
+    zh_html = ""
+    if meaning_zh:
+        zh_html = f"""
+        <div style="font-size:0.95rem; color:#e06c00; margin-top:6px;">
+            {T("zh_meaning_label")}{meaning_zh}
+        </div>"""
+
+    example_html = ""
+    if example:
+        example_html = f"<div class='card-example'>{T('example_lbl')}{example}</div>"
+
+    st.markdown(
+        f"""
+        <div class="card-back">
+            <div class="card-meaning">💡 {meaning}</div>
+            {reading_html}
+            {phonetic_html}
+            {zh_html}
+            {example_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # ─────────────────────────────
 # セッション初期化
 # ─────────────────────────────
@@ -1107,35 +1205,8 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             st.session_state["flash_mode"] = "home"
             st.rerun()
 
-    category = card.get("category", "")
-    is_japanese = category in ["JLPT", "日本語", "国語"]
-
     if not st.session_state["flash_show_answer"]:
-        if is_japanese:
-            reading = card.get("reading", "")
-            reading_html = (
-                f'<div class="card-reading">{T("reading_jp_lbl")}{reading}</div>'
-                if reading
-                else ""
-            )
-            st.markdown(
-                f"""
-<div class="card-front">
-    <div class="card-word">{card['word']}</div>
-    {reading_html}
-</div>
-""",
-                unsafe_allow_html=True,
-            )
-        else:
-            st.markdown(
-                f"""
-<div class="card-front">
-    <div class="card-word">{card['word']}</div>
-</div>
-""",
-                unsafe_allow_html=True,
-            )
+        render_card_front(card)
 
         st.markdown(
             "<div style='text-align:center; color:#888; "
@@ -1147,62 +1218,7 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             st.session_state["flash_show_answer"] = True
             st.rerun()
     else:
-        if is_japanese:
-            example = card.get("example", "")
-            example_html = (
-                f'<div class="card-example">{T("example_lbl")}{example}</div>'
-                if example
-                else ""
-            )
-            st.markdown(
-                f"""
-<div class="card-back">
-    <div class="card-meaning">💡 {card['meaning']}</div>
-    {example_html}
-</div>
-""",
-                unsafe_allow_html=True,
-            )
-        else:
-            reading = card.get("reading", "")
-            phonetic = card.get("phonetic", "")
-            meaning_zh = card.get("meaning_zh", "")
-
-            reading_html = (
-                f'<div style="font-size:1rem; color:#667eea; margin-top:8px;">'
-                f'{T("reading_label")}{reading}</div>'
-            ) if reading else ""
-
-            phonetic_html = (
-                f'<div style="font-size:0.95rem; color:#999; margin-top:4px;">'
-                f'{T("phonetic_label")}{phonetic}</div>'
-            ) if phonetic else ""
-
-            zh_html = (
-                f'<div style="font-size:1rem; color:#e05c00; margin-top:8px; '
-                f'font-weight:bold;">'
-                f'{T("zh_meaning_label")}{meaning_zh}</div>'
-            ) if meaning_zh else ""
-
-            example = card.get("example", "")
-            example_html = (
-                f'<div class="card-example">{T("example_lbl")}{example}</div>'
-                if example
-                else ""
-            )
-
-            st.markdown(
-                f"""
-<div class="card-back">
-    <div class="card-meaning">💡 {card['meaning']}</div>
-    {zh_html}
-    {reading_html}
-    {phonetic_html}
-    {example_html}
-</div>
-""",
-                unsafe_allow_html=True,
-            )
+        render_card_back(card)
 
         def record_quality(q):
             logs = load_review_logs(username)
@@ -1577,6 +1593,48 @@ def show_time_attack(username):
         box-shadow: 0 4px 0 #667eea !important;
         transform: translateY(-2px) !important;
     }
+    .card-front {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 40px 24px;
+        text-align: center;
+        color: white;
+        margin: 16px 0;
+        box-shadow: 0 8px 24px rgba(102,126,234,0.4);
+    }
+    .card-word {
+        font-size: 2.4rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+    }
+    .card-reading {
+        font-size: 1.1rem;
+        opacity: 0.85;
+    }
+    .card-back {
+        background: white;
+        border: 3px solid #667eea;
+        border-radius: 20px;
+        padding: 32px 24px;
+        text-align: center;
+        margin: 16px 0;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .card-meaning {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 12px;
+    }
+    .card-example {
+        font-size: 1rem;
+        color: #666;
+        font-style: italic;
+        border-top: 1px solid #eee;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1616,20 +1674,15 @@ def show_time_attack(username):
         timer_color = "#ff4b4b"   # 赤
 
     # ── カード表示 ───────────────────────────
-    st.markdown(
-        f"""
-    <div class="ta-card-dark">
-        <div style="font-size:0.85rem; opacity:0.6; margin-bottom:6px;">
-            {T("ta_question")}
-        </div>
-        <div class="ta-word">{card['word']}</div>
-        <div style="font-size:0.9rem; opacity:0.55;">
-            {T("ta_reading").format(r=card.get('reading', '―'))}
-        </div>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    if not st.session_state["ta_answered"]:
+        st.markdown(
+            f'<div style="font-size:0.85rem; opacity:0.6; margin-bottom:6px; '
+            f'text-align:center; color:#aaa;">{T("ta_question")}</div>',
+            unsafe_allow_html=True,
+        )
+        render_card_front(card)
+    else:
+        render_card_back(card)
 
     # ── タイマー表示 ─────────────────────────
     if not st.session_state["ta_answered"]:
