@@ -66,6 +66,35 @@ def load_users():
     except:
         return []
 
+
+# Supabase SQL Editor で users に nickname 列を追加するときの例（手動実行）:
+# ALTER TABLE users ADD COLUMN IF NOT EXISTS nickname TEXT DEFAULT '';
+
+
+@st.cache_data(ttl=60)
+def load_user_nickname(username):
+    """ユーザーのニックネームを取得"""
+    try:
+        sb = get_supabase()
+        res = sb.table("users").select("nickname").eq("username", username).execute()
+        if res.data and res.data[0].get("nickname"):
+            return res.data[0]["nickname"]
+        return ""
+    except:
+        return ""
+
+
+def save_user_nickname(username, nickname):
+    """ニックネームを保存"""
+    try:
+        sb = get_supabase()
+        sb.table("users").update({"nickname": nickname}).eq("username", username).execute()
+        st.cache_data.clear()
+        return True
+    except:
+        return False
+
+
 @st.cache_data(ttl=30)
 def load_flashcard_sets():
     try:
@@ -233,6 +262,49 @@ def show_home(username):
         font-weight:bold; display:inline-block; margin:4px;
         font-size: 1rem;
     }
+    /* 追加学習ボタン */
+    div[data-testid="stHorizontalBlock"]:has(
+        button[kind="secondary"]
+    ) > div:nth-child(1) > div > button {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 16px !important;
+        min-height: 100px !important;
+        font-size: 1rem !important;
+        font-weight: bold !important;
+        white-space: pre-wrap !important;
+        line-height: 1.6 !important;
+        box-shadow: 0 6px 16px rgba(238,90,36,0.35) !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(
+        button[kind="secondary"]
+    ) > div:nth-child(2) > div > button {
+        background: linear-gradient(135deg, #667eea, #764ba2) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 16px !important;
+        min-height: 100px !important;
+        font-size: 1rem !important;
+        font-weight: bold !important;
+        white-space: pre-wrap !important;
+        line-height: 1.6 !important;
+        box-shadow: 0 6px 16px rgba(102,126,234,0.4) !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(
+        button[kind="secondary"]
+    ) > div:nth-child(3) > div > button {
+        background: linear-gradient(135deg, #00b09b, #00d4aa) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 16px !important;
+        min-height: 100px !important;
+        font-size: 1rem !important;
+        font-weight: bold !important;
+        white-space: pre-wrap !important;
+        line-height: 1.6 !important;
+        box-shadow: 0 6px 16px rgba(0,176,155,0.35) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -309,6 +381,40 @@ def show_home(username):
 
     total_today = new_count + due_count
     if total_today == 0:
+        # ニックネーム設定
+        current_nick = load_user_nickname(username)
+        if not current_nick:
+            st.markdown("---")
+            st.markdown("### 🎮 ランキング用ネームを決めよう！")
+            st.markdown("""
+            <div style="background:#fff8e1; border:2px solid #ffd200;
+                border-radius:14px; padding:16px; margin-bottom:12px;">
+                <div style="font-size:1rem; font-weight:bold; color:#333;">
+                    📺 なまえを いれてください
+                </div>
+                <div style="font-size:0.85rem; color:#666; margin-top:4px;">
+                    ランキングに表示される名前です。本名は使わないでね！
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            nick_input = st.text_input(
+                "ニックネーム（3〜8文字）",
+                max_chars=8,
+                placeholder="例: たんごマスター"
+            )
+            if st.button("⚡ これで決定！", type="primary"):
+                if len(nick_input) < 2:
+                    st.error("2文字以上で入力してください")
+                else:
+                    if save_user_nickname(username, nick_input):
+                        st.success(f"🎉「{nick_input}」に決定！ランキングに参戦できます！")
+                        st.balloons()
+                        st.rerun()
+        else:
+            st.caption(
+                f"🎮 ランキングネーム: **{current_nick}**　[変更する場合はログアウト後に設定]"
+            )
+
         st.success("🎉 今日の分は全部終わった！また明日！")
 
         # ── 追加学習メニュー ────────────────────
@@ -348,18 +454,12 @@ def show_home(username):
         ex1, ex2, ex3 = st.columns(3)
 
         with ex1:
-            st.markdown("""
-            <div style="background:#ff6b6b; border-radius:14px;
-                padding:14px 8px; text-align:center; color:white;
-                font-weight:bold; margin-bottom:6px;">
-                <div style="font-size:1.4rem;">🔁</div>
-                <div style="font-size:0.9rem;">苦手だけ</div>
-                <div style="font-size:0.75rem; opacity:0.9;">
-                    復習する
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("苦手を復習", key="extra_weak", use_container_width=True):
+            if st.button(
+                "🔁 苦手だけ復習\n\n答えが出なかった\n単語をもう一度",
+                key="extra_weak",
+                use_container_width=True,
+                type="secondary",
+            ):
                 cards = load_flashcards_by_set(selected_set_id)
                 logs = load_review_logs(username)
                 # quality < 4 のカードIDを抽出（最新ログ基準）
@@ -385,18 +485,12 @@ def show_home(username):
                     st.success("🎉 苦手な単語はありません！完璧です！")
 
         with ex2:
-            st.markdown("""
-            <div style="background:#667eea; border-radius:14px;
-                padding:14px 8px; text-align:center; color:white;
-                font-weight:bold; margin-bottom:6px;">
-                <div style="font-size:1.4rem;">🚀</div>
-                <div style="font-size:0.9rem;">先取り</div>
-                <div style="font-size:0.75rem; opacity:0.9;">
-                    新しい単語へ
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("先取りする", key="extra_new", use_container_width=True):
+            if st.button(
+                "🚀 先取りチャレンジ\n\nまだ見ていない\n新しい単語へ",
+                key="extra_new",
+                use_container_width=True,
+                type="secondary",
+            ):
                 cards = load_flashcards_by_set(selected_set_id)
                 logs = load_review_logs(username)
                 learned_ids = {row["flashcard_id"] for row in logs}
@@ -413,18 +507,12 @@ def show_home(username):
                     st.success("🏆 この教材は全単語制覇です！すごい！")
 
         with ex3:
-            st.markdown("""
-            <div style="background:#00b09b; border-radius:14px;
-                padding:14px 8px; text-align:center; color:white;
-                font-weight:bold; margin-bottom:6px;">
-                <div style="font-size:1.4rem;">🎯</div>
-                <div style="font-size:0.9rem;">全部復習</div>
-                <div style="font-size:0.75rem; opacity:0.9;">
-                    全単語を通す
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("全部やる", key="extra_all", use_container_width=True):
+            if st.button(
+                "🎯 全部通し復習\n\n教材の全単語を\nシャッフルで",
+                key="extra_all",
+                use_container_width=True,
+                type="secondary",
+            ):
                 cards = load_flashcards_by_set(selected_set_id)
                 if cards:
                     random.shuffle(cards)
