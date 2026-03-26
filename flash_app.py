@@ -614,96 +614,137 @@ def render_card_front(card: dict, lang: str = "ja") -> None:
     category = str(card.get("category", ""))
 
     if "みんなの日本語" in category:
-        # 問題面：中国語を表示
+        # ── 問題面：中国語訳を大きく表示 ──
         meaning_zh = card.get("meaning_zh", "")
-        html = f"""
-<div style="text-align:center; padding:1.5rem 0.5rem;">
-  <div style="font-size:2rem; font-weight:700; color:#1a1a1a;">
+        st.markdown(f"""
+<div style="
+    background: linear-gradient(135deg,#fff9f0,#fff3e0);
+    border-radius:16px;
+    padding:2.5rem 1.5rem;
+    text-align:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.08);
+    margin:0.5rem 0;">
+  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">問題</div>
+  <div style="font-size:2.2rem;font-weight:700;color:#1a1a1a;line-height:1.4;">
     {meaning_zh}
   </div>
+  <div style="font-size:0.85rem;color:#bbb;margin-top:1rem;">日本語で何と言いますか？</div>
 </div>
-"""
-        st.markdown(html, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
     else:
-        # 問題面：英単語を表示
+        # ── 問題面：英単語を表示 ──
         word = card.get("word", "")
         reading = card.get("reading", "")
-        html = f"""
-<div style="text-align:center; padding:1.5rem 0.5rem;">
-  <div style="font-size:2.2rem; font-weight:700; color:#1a1a1a;">
+        reading_html = (
+            f'<div style="font-size:1rem;color:#888;margin-top:0.4rem;">{reading}</div>'
+            if reading and reading != word
+            else ""
+        )
+        st.markdown(f"""
+<div style="
+    background:linear-gradient(135deg,#f0f4ff,#e8f0fe);
+    border-radius:16px;
+    padding:2.5rem 1.5rem;
+    text-align:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.08);
+    margin:0.5rem 0;">
+  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">問題</div>
+  <div style="font-size:2.4rem;font-weight:700;color:#1a1a1a;">
     {word}
   </div>
-  <div style="font-size:1rem; color:#888; margin-top:0.4rem;">
-    {reading if reading and reading != word else ""}
-  </div>
+  {reading_html}
 </div>
-"""
-        st.markdown(html, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 
 def render_card_back(card: dict, lang: str = "ja") -> None:
     category = str(card.get("category", ""))
 
     if "みんなの日本語" in category:
-        # 答え面：日本語＋読み＋品詞を表示
+        # ── 答え面：日本語＋読み＋アクセント＋品詞 ──
         word = card.get("word", "")
         reading = card.get("reading", "")
-        meaning = card.get("meaning", "")  # 品詞
+        meaning = card.get("meaning", "")  # 品詞〈名〉〈動I〉など
         accent = card.get("phonetic", "")  # アクセント番号
 
-        html = f"""
-<div style="text-align:center; padding:1.5rem 0.5rem;">
-  <div style="font-size:2rem; font-weight:700; color:#1a1a1a;">
+        accent_html = (
+            f'<span style="font-size:0.95rem;color:#e05a00;margin-left:0.5rem;">{accent}</span>'
+            if accent
+            else ""
+        )
+        pos_html = (
+            f'<div style="font-size:0.9rem;color:#888;margin-top:0.5rem;">{meaning}</div>'
+            if meaning
+            else ""
+        )
+
+        st.markdown(f"""
+<div style="
+    background:linear-gradient(135deg,#f0fff4,#e6ffed);
+    border-radius:16px;
+    padding:2.5rem 1.5rem;
+    text-align:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.08);
+    margin:0.5rem 0;">
+  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">答え</div>
+  <div style="font-size:2.2rem;font-weight:700;color:#1a1a1a;line-height:1.4;">
     {word}
   </div>
-  <div style="font-size:1.1rem; color:#555; margin-top:0.4rem;">
-    {reading}{"　" + accent if accent else ""}
+  <div style="font-size:1.1rem;color:#555;margin-top:0.5rem;">
+    {reading}{accent_html}
   </div>
-  <div style="font-size:0.95rem; color:#888; margin-top:0.5rem;">
-    {meaning}
-  </div>
+  {pos_html}
 </div>
-"""
-        st.markdown(html, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
     else:
-        # 答え面：日本語訳＋発音記号＋中国語訳＋例文を表示
+        # ── 答え面：日本語訳＋発音記号＋中国語訳＋例文 ──
         meaning = card.get("meaning", "")
         reading = card.get("reading", "")
         phonetic = card.get("phonetic", "")
         meaning_zh = card.get("meaning_zh", "")
         example = card.get("example", "")
 
-        ph_html = f"""
-  <div style="font-size:1rem; color:#777; margin-top:0.2rem;">
-    {phonetic}
-  </div>""" if phonetic else ""
+        ph_html = (
+            f'<div style="font-size:1rem;color:#777;margin-top:0.3rem;">{phonetic}</div>'
+            if phonetic
+            else ""
+        )
+        zh_html = (
+            f'<div style="font-size:1.1rem;color:#e05a00;margin-top:0.6rem;">🇨🇳 {meaning_zh}</div>'
+            if meaning_zh
+            else ""
+        )
+        ex_html = (
+            f'<div style="font-size:0.9rem;color:#aaa;margin-top:0.6rem;font-style:italic;">{example}</div>'
+            if example
+            else ""
+        )
+        rd_html = (
+            f'<div style="font-size:1rem;color:#555;margin-top:0.4rem;">読み：{reading}</div>'
+            if reading
+            else ""
+        )
 
-        zh_html = f"""
-  <div style="font-size:1.1rem; color:#e05a00; margin-top:0.5rem;">
-    🇨🇳 {meaning_zh}
-  </div>""" if meaning_zh else ""
-
-        ex_html = f"""
-  <div style="font-size:0.9rem; color:#888; margin-top:0.6rem; font-style:italic;">
-    {example}
-  </div>""" if example else ""
-
-        html = f"""
-<div style="text-align:center; padding:1.5rem 0.5rem;">
-  <div style="font-size:1.5rem; font-weight:700; color:#1a1a1a;">
+        st.markdown(f"""
+<div style="
+    background:linear-gradient(135deg,#f0f4ff,#e8f0fe);
+    border-radius:16px;
+    padding:2.5rem 1.5rem;
+    text-align:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.08);
+    margin:0.5rem 0;">
+  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">答え</div>
+  <div style="font-size:1.8rem;font-weight:700;color:#1a1a1a;">
     {meaning}
   </div>
-  <div style="font-size:1rem; color:#555; margin-top:0.4rem;">
-    読み：{reading}
-  </div>
+  {rd_html}
   {ph_html}
   {zh_html}
   {ex_html}
 </div>
-"""
-        st.markdown(html, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 
 # ─────────────────────────────
