@@ -433,6 +433,42 @@ def show_study(username):
     font-size: 1.8rem;
     margin-bottom: 4px;
 }
+.rate-card button {
+    height: auto !important;
+    min-height: 110px !important;
+    border-radius: 20px !important;
+    border: none !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    white-space: pre-wrap !important;
+    line-height: 1.5 !important;
+    padding: 12px 6px !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+.rate-card button:active {
+    transform: scale(0.96) !important;
+}
+/* 各ボタンの色 */
+div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
+    background: linear-gradient(135deg, #ff4b4b, #ff6b6b) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px rgba(255,75,75,0.35) !important;
+}
+div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
+    background: linear-gradient(135deg, #ffa500, #ffbe00) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px rgba(255,165,0,0.35) !important;
+}
+div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
+    background: linear-gradient(135deg, #00b09b, #00d4aa) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px rgba(0,176,155,0.35) !important;
+}
+div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px rgba(102,126,234,0.4) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -518,89 +554,55 @@ def show_study(username):
         # グラデーション凡例バー
         st.markdown("""
 <div style="
-    height: 12px;
-    border-radius: 8px;
+    height: 12px; border-radius: 8px;
     background: linear-gradient(to right, #ff4b4b, #ffa500, #00b09b, #667eea);
     margin: 4px 0 2px 0;
 "></div>
 <div style="display:flex; justify-content:space-between;
-            font-size:0.75rem; color:#888; margin-bottom:12px;">
-    <span>❌ 全然ダメ</span>
-    <span>⭕ バッチリ！</span>
+            font-size:0.75rem; color:#888; margin-bottom:16px;">
+    <span>❌ 全然ダメ</span><span>⭐ バッチリ！</span>
 </div>
 """, unsafe_allow_html=True)
 
-        # 4ボタンを1列に並べる
+        # ワンタップカードボタン（1列4つ）
         c0, c1, c2, c3 = st.columns(4)
 
         with c0:
-            st.markdown("""
-    <div style="background:linear-gradient(135deg,#ff4b4b,#ff6b6b);
-        border-radius:16px; padding:14px 4px; text-align:center; color:white;">
-        <div style="font-size:1.8rem;">❌</div>
-        <div style="font-weight:bold; font-size:0.95rem;">全然ダメ</div>
-        <div style="font-size:0.72rem; opacity:0.9; margin-top:4px;">
-            まったく<br>思い出せなかった
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-            if st.button("選ぶ", key="q0", use_container_width=True):
+            if st.button(
+                "❌\n全然ダメ\n\n答えが\n出てこなかった",
+                key="q0", use_container_width=True
+            ):
                 record_quality(0)
 
         with c1:
-            st.markdown("""
-    <div style="background:linear-gradient(135deg,#ffa500,#ffbe00);
-        border-radius:16px; padding:14px 4px; text-align:center; color:white;">
-        <div style="font-size:1.8rem;">🔶</div>
-        <div style="font-weight:bold; font-size:0.95rem;">うっすら</div>
-        <div style="font-size:0.72rem; opacity:0.9; margin-top:4px;">
-            なんとなく<br>思い出せた
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-            if st.button("選ぶ", key="q3", use_container_width=True):
+            if st.button(
+                "🔶\nうっすら\n\n思い出すのに\n時間がかかった",
+                key="q3", use_container_width=True
+            ):
                 record_quality(3)
 
         with c2:
-            st.markdown("""
-    <div style="background:linear-gradient(135deg,#00b09b,#00d4aa);
-        border-radius:16px; padding:14px 4px; text-align:center; color:white;">
-        <div style="font-size:1.8rem;">🟢</div>
-        <div style="font-weight:bold; font-size:0.95rem;">だいたい</div>
-        <div style="font-size:0.72rem; opacity:0.9; margin-top:4px;">
-            少し迷ったが<br>言えた
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-            if st.button("選ぶ", key="q4", use_container_width=True):
+            if st.button(
+                "🟢\nだいたい\n\nすぐ出たが\n少し不安だった",
+                key="q4", use_container_width=True
+            ):
                 record_quality(4)
 
         with c3:
-            st.markdown("""
-    <div style="background:linear-gradient(135deg,#667eea,#764ba2);
-        border-radius:16px; padding:14px 4px; text-align:center; color:white;">
-        <div style="font-size:1.8rem;">⭐</div>
-        <div style="font-weight:bold; font-size:0.95rem;">バッチリ！</div>
-        <div style="font-size:0.72rem; opacity:0.9; margin-top:4px;">
-            迷わず<br>即答できた！
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-            if st.button("選ぶ", key="q5", use_container_width=True):
+            if st.button(
+                "⭐\nバッチリ！\n\n一瞬で\n完全に自信あり",
+                key="q5", use_container_width=True
+            ):
                 record_quality(5)
 
-        # 凡例テキスト（ボタン下）
+        # 次回復習の目安（ボタン下）
         st.markdown("""
 <div style="display:flex; justify-content:space-between;
-            font-size:0.72rem; color:#aaa; margin-top:2px;">
-    <span>次回: 明日また</span>
-    <span>次回: 6日後</span>
-    <span>次回: 数週間後</span>
-    <span>次回: 1ヶ月以上</span>
+            font-size:0.70rem; color:#bbb; margin-top:6px;">
+    <span style="flex:1;text-align:center;">次回: 明日</span>
+    <span style="flex:1;text-align:center;">次回: 6日後</span>
+    <span style="flex:1;text-align:center;">次回: 数週間後</span>
+    <span style="flex:1;text-align:center;">次回: 1ヶ月以上</span>
 </div>
 """, unsafe_allow_html=True)
 
