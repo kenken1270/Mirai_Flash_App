@@ -386,6 +386,53 @@ def show_study(username):
     text-align: right;
     margin-bottom: 4px;
 }
+.rating-bar {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+}
+.rating-btn-0 {
+    flex: 1;
+    background: linear-gradient(135deg, #ff4b4b, #ff6b6b);
+    color: white; border: none; border-radius: 16px;
+    padding: 16px 8px; cursor: pointer;
+    text-align: center; font-weight: bold;
+    box-shadow: 0 4px 12px rgba(255,75,75,0.3);
+}
+.rating-btn-3 {
+    flex: 1;
+    background: linear-gradient(135deg, #ffa500, #ffbe00);
+    color: white; border: none; border-radius: 16px;
+    padding: 16px 8px; cursor: pointer;
+    text-align: center; font-weight: bold;
+    box-shadow: 0 4px 12px rgba(255,165,0,0.3);
+}
+.rating-btn-4 {
+    flex: 1;
+    background: linear-gradient(135deg, #00b09b, #00d4aa);
+    color: white; border: none; border-radius: 16px;
+    padding: 16px 8px; cursor: pointer;
+    text-align: center; font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,176,155,0.3);
+}
+.rating-btn-5 {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white; border: none; border-radius: 16px;
+    padding: 16px 8px; cursor: pointer;
+    text-align: center; font-weight: bold;
+    box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+.rating-label {
+    font-size: 0.78rem;
+    margin-top: 6px;
+    opacity: 0.92;
+    line-height: 1.3;
+}
+.rating-icon {
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -466,43 +513,96 @@ def show_study(username):
             st.rerun()
 
         st.markdown("---")
-        st.markdown("### ✅ どのくらい覚えていた？")
-        st.markdown("**思い出せた速さ・自信で選んでね**")
+        st.markdown("### どのくらい覚えていた？")
 
-        col1, col2 = st.columns(2)
-        col3, col4 = st.columns(2)
+        # グラデーション凡例バー
+        st.markdown("""
+<div style="
+    height: 12px;
+    border-radius: 8px;
+    background: linear-gradient(to right, #ff4b4b, #ffa500, #00b09b, #667eea);
+    margin: 4px 0 2px 0;
+"></div>
+<div style="display:flex; justify-content:space-between;
+            font-size:0.75rem; color:#888; margin-bottom:12px;">
+    <span>❌ 全然ダメ</span>
+    <span>⭕ バッチリ！</span>
+</div>
+""", unsafe_allow_html=True)
 
-        with col1:
-            st.markdown("**😰 全然ダメ**")
-            st.caption(
-                "まったく思い出せなかった\n・頭が真っ白だった\n・見ても「あ、そうか」程度"
-            )
-            if st.button("😰 全然ダメ", use_container_width=True, key="q0"):
+        # 4ボタンを1列に並べる
+        c0, c1, c2, c3 = st.columns(4)
+
+        with c0:
+            st.markdown("""
+    <div style="background:linear-gradient(135deg,#ff4b4b,#ff6b6b);
+        border-radius:16px; padding:14px 4px; text-align:center; color:white;">
+        <div style="font-size:1.8rem;">❌</div>
+        <div style="font-weight:bold; font-size:0.95rem;">全然ダメ</div>
+        <div style="font-size:0.72rem; opacity:0.9; margin-top:4px;">
+            まったく<br>思い出せなかった
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+            if st.button("選ぶ", key="q0", use_container_width=True):
                 record_quality(0)
 
-        with col2:
-            st.markdown("**🤔 うっすら覚えてた**")
-            st.caption(
-                "なんとなく思い出せたが\n・時間がかかった\n・自信がなかった"
-            )
-            if st.button("🤔 うっすら", use_container_width=True, key="q3"):
+        with c1:
+            st.markdown("""
+    <div style="background:linear-gradient(135deg,#ffa500,#ffbe00);
+        border-radius:16px; padding:14px 4px; text-align:center; color:white;">
+        <div style="font-size:1.8rem;">🔶</div>
+        <div style="font-weight:bold; font-size:0.95rem;">うっすら</div>
+        <div style="font-size:0.72rem; opacity:0.9; margin-top:4px;">
+            なんとなく<br>思い出せた
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+            if st.button("選ぶ", key="q3", use_container_width=True):
                 record_quality(3)
 
-        with col3:
-            st.markdown("**😊 だいたい言えた**")
-            st.caption(
-                "だいたい正しく答えられた\n・少し迷ったが言えた\n・意味はわかった"
-            )
-            if st.button("😊 だいたい", use_container_width=True, key="q4"):
+        with c2:
+            st.markdown("""
+    <div style="background:linear-gradient(135deg,#00b09b,#00d4aa);
+        border-radius:16px; padding:14px 4px; text-align:center; color:white;">
+        <div style="font-size:1.8rem;">🟢</div>
+        <div style="font-weight:bold; font-size:0.95rem;">だいたい</div>
+        <div style="font-size:0.72rem; opacity:0.9; margin-top:4px;">
+            少し迷ったが<br>言えた
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+            if st.button("選ぶ", key="q4", use_container_width=True):
                 record_quality(4)
 
-        with col4:
-            st.markdown("**🎯 すぐ言えた！**")
-            st.caption(
-                "迷わず即答できた\n・自信を持って答えられた\n・完璧にわかった"
-            )
-            if st.button("🎯 バッチリ！", use_container_width=True, key="q5"):
+        with c3:
+            st.markdown("""
+    <div style="background:linear-gradient(135deg,#667eea,#764ba2);
+        border-radius:16px; padding:14px 4px; text-align:center; color:white;">
+        <div style="font-size:1.8rem;">⭐</div>
+        <div style="font-weight:bold; font-size:0.95rem;">バッチリ！</div>
+        <div style="font-size:0.72rem; opacity:0.9; margin-top:4px;">
+            迷わず<br>即答できた！
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+            if st.button("選ぶ", key="q5", use_container_width=True):
                 record_quality(5)
+
+        # 凡例テキスト（ボタン下）
+        st.markdown("""
+<div style="display:flex; justify-content:space-between;
+            font-size:0.72rem; color:#aaa; margin-top:2px;">
+    <span>次回: 明日また</span>
+    <span>次回: 6日後</span>
+    <span>次回: 数週間後</span>
+    <span>次回: 1ヶ月以上</span>
+</div>
+""", unsafe_allow_html=True)
 
         st.markdown("---")
         if st.button("⏸️ いったん中断してホームへ戻る", use_container_width=True):
