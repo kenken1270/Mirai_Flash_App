@@ -629,11 +629,10 @@ def load_due_cards(username: str, set_id: int) -> list:
     return combined
 
 
-def render_card_front(card: dict, lang: str = "ja") -> None:
+def render_card_front(card: dict, lang: str = "ja"):
     category = str(card.get("category", ""))
 
     if "みんなの日本語" in category:
-        # 問題面：meaning（＝中国語訳）を大きく表示
         meaning = card.get("meaning", "")
         st.markdown(f"""
 <div style="
@@ -652,13 +651,10 @@ def render_card_front(card: dict, lang: str = "ja") -> None:
 """, unsafe_allow_html=True)
 
     else:
-        word = card.get("word", "")
+        word    = card.get("word", "")
         reading = card.get("reading", "")
-        reading_html = (
-            f'<div style="font-size:1rem;color:#888;margin-top:0.4rem;">{reading}</div>'
-            if reading and reading != word
-            else ""
-        )
+        reading_html = f'<div style="font-size:1rem;color:#888;margin-top:0.4rem;">{reading}</div>' \
+                       if reading and reading != word else ""
         st.markdown(f"""
 <div style="
     background:linear-gradient(135deg,#f0f4ff,#e8f0fe);
@@ -676,26 +672,19 @@ def render_card_front(card: dict, lang: str = "ja") -> None:
 """, unsafe_allow_html=True)
 
 
-def render_card_back(card: dict, lang: str = "ja") -> None:
+def render_card_back(card: dict, lang: str = "ja"):
     category = str(card.get("category", ""))
 
     if "みんなの日本語" in category:
-        # 答え面：日本語（word）＋読み＋アクセント＋品詞（meaning_zh）
-        word = card.get("word", "")
+        word    = card.get("word", "")
         reading = card.get("reading", "")
-        pos = card.get("meaning_zh", "")  # 品詞
-        accent = card.get("phonetic", "")  # アクセント番号
+        pos     = card.get("meaning_zh", "")   # 品詞〈名〉〈動I〉
+        accent  = card.get("phonetic", "")     # アクセント番号
 
-        accent_html = (
-            f'<span style="font-size:0.95rem;color:#e05a00;margin-left:0.5rem;">{accent}</span>'
-            if accent
-            else ""
-        )
-        pos_html = (
-            f'<div style="font-size:0.9rem;color:#888;margin-top:0.5rem;">{pos}</div>'
-            if pos
-            else ""
-        )
+        accent_html = f'<span style="font-size:0.95rem;color:#e05a00;margin-left:0.5rem;">{accent}</span>' \
+                      if accent else ""
+        pos_html    = f'<div style="font-size:0.9rem;color:#888;margin-top:0.5rem;">{pos}</div>' \
+                      if pos else ""
 
         st.markdown(f"""
 <div style="
@@ -717,33 +706,20 @@ def render_card_back(card: dict, lang: str = "ja") -> None:
 """, unsafe_allow_html=True)
 
     else:
-        # 英語カード：答え面
-        meaning = card.get("meaning", "")
-        reading = card.get("reading", "")
-        phonetic = card.get("phonetic", "")
+        meaning    = card.get("meaning", "")
+        reading    = card.get("reading", "")
+        phonetic   = card.get("phonetic", "")
         meaning_zh = card.get("meaning_zh", "")
-        example = card.get("example", "")
+        example    = card.get("example", "")
 
-        ph_html = (
-            f'<div style="font-size:1rem;color:#777;margin-top:0.3rem;">{phonetic}</div>'
-            if phonetic
-            else ""
-        )
-        zh_html = (
-            f'<div style="font-size:1.1rem;color:#e05a00;margin-top:0.6rem;">🇨🇳 {meaning_zh}</div>'
-            if meaning_zh
-            else ""
-        )
-        ex_html = (
-            f'<div style="font-size:0.9rem;color:#aaa;margin-top:0.6rem;font-style:italic;">{example}</div>'
-            if example
-            else ""
-        )
-        rd_html = (
-            f'<div style="font-size:1rem;color:#555;margin-top:0.4rem;">読み：{reading}</div>'
-            if reading
-            else ""
-        )
+        ph_html = f'<div style="font-size:1rem;color:#777;margin-top:0.3rem;">{phonetic}</div>' \
+                  if phonetic else ""
+        zh_html = f'<div style="font-size:1.1rem;color:#e05a00;margin-top:0.6rem;">🇨🇳 {meaning_zh}</div>' \
+                  if meaning_zh else ""
+        ex_html = f'<div style="font-size:0.9rem;color:#aaa;margin-top:0.6rem;font-style:italic;">{example}</div>' \
+                  if example else ""
+        rd_html = f'<div style="font-size:1rem;color:#555;margin-top:0.4rem;">読み：{reading}</div>' \
+                  if reading else ""
 
         st.markdown(f"""
 <div style="
