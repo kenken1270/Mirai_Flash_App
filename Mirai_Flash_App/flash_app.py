@@ -1043,7 +1043,9 @@ def show_home(username):
     total_today = new_count + due_count
     if total_today > 0:
         if st.button(T("start_study"), type="primary", use_container_width=True):
+            st.write("[DEBUG] ボタンが押されました")
             queue = load_due_cards(username, selected_set_id)
+            st.write(f"[DEBUG] queue件数: {len(queue)}")
             if queue:
                 st.session_state["flash_queue"] = queue
                 st.session_state["word_list_queue"] = queue
@@ -1051,9 +1053,10 @@ def show_home(username):
                 st.session_state["flash_show_answer"] = False
                 st.session_state["flash_session_results"] = []
                 st.session_state["flash_mode"] = "word_list"
+                st.write("[DEBUG] word_listモードに変更 → rerun")
                 st.rerun()
             else:
-                st.warning("カードが見つかりませんでした。")
+                st.warning("[DEBUG] queueが空です")
     else:
         # 今日の分が終わった場合
         st.success(T("all_done"))
