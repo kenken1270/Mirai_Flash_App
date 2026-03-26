@@ -474,6 +474,65 @@ def save_user_nickname(username, nickname):
         return False
 
 
+@st.cache_data(ttl=60)
+def load_study_plan(username: str) -> dict:
+    """
+    基本ペース(base_daily_limit)と今日の調整値を取得する。
+    today_limit_date が今日でなければ today_limit は無効とみなす。
+    戻り値: {"base": int, "today": int, "effective": int}
+      effective = 今日実際に使う枚数
+    """
+    try:
+        sb = get_supabase()
+        res = sb.table("users").select(
+            "base_daily_limit, today_limit, today_limit_date"
+        ).eq("username", username).execute()
+        if not res.data:
+            return {"base": 10, "today": None, "effective": 10}
+        row = res.data[0]
+        base = int(row.get("base_daily_limit") or 10)
+        today_str = date.today().isoformat()
+        today_limit = row.get("today_limit")
+        today_date = row.get("today_limit_date")
+        # 今日の日付と一致する場合のみ today_limit を有効にする
+        if today_limit is not None and str(today_date) == today_str:
+            effective = int(today_limit)
+        else:
+            effective = base
+        return {"base": base, "today": today_limit if str(today_date) == today_str else None, "effective": effective}
+    except:
+        return {"base": 10, "today": None, "effective": 10}
+
+
+def save_base_limit(username: str, limit: int) -> bool:
+    """基本ペース（base_daily_limit）を保存する"""
+    try:
+        sb = get_supabase()
+        sb.table("users").update({
+            "base_daily_limit": limit,
+            "today_limit": None,
+            "today_limit_date": None,
+        }).eq("username", username).execute()
+        st.cache_data.clear()
+        return True
+    except:
+        return False
+
+
+def save_today_limit(username: str, limit: int) -> bool:
+    """今日だけの調整枚数を保存する"""
+    try:
+        sb = get_supabase()
+        sb.table("users").update({
+            "today_limit": limit,
+            "today_limit_date": date.today().isoformat(),
+        }).eq("username", username).execute()
+        st.cache_data.clear()
+        return True
+    except:
+        return False
+
+
 @st.cache_data(ttl=30)
 def load_flashcard_sets():
     try:
@@ -557,11 +616,13 @@ def count_new_and_due_for_set(username, set_id):
     )
     return new_count, due_count
 
-def load_due_cards(username, set_id):
+def load_due_cards(username: str, set_id: int) -> list:
     cards = load_flashcards_by_set(set_id)
     if not cards:
         return []
     logs = load_review_logs(username)
+    plan = load_study_plan(username)
+    daily_limit = plan["effective"]
 
     latest = {}
     for row in logs:
@@ -572,11 +633,12 @@ def load_due_cards(username, set_id):
     today_str = date.today().isoformat()
     new_cards = [c for c in cards if c["id"] not in latest]
     random.shuffle(new_cards)
-    new_cards = new_cards[:10]
+    new_cards = new_cards[:daily_limit]
 
     due_cards = [
         c for c in cards
-        if c["id"] in latest and latest[c["id"]].get("next_review_date", "9999") <= today_str
+        if c["id"] in latest
+        and latest[c["id"]].get("next_review_date", "9999") <= today_str
     ]
 
     combined = new_cards + due_cards
@@ -822,6 +884,71 @@ def show_home(username):
         st.caption(
             f"✅ {correct} / {total} {T('progress_caption')}（{int(progress_val*100)}%）"
         )
+
+        # ── 学習ペース設定 UI ─────────────────────
+        plan = load_study_plan(username)
+        base = plan["base"]
+        today = plan["today"]
+        eff = plan["effective"]
+
+        # 表示ラベル生成
+        if today is not None and today != base:
+            pace_label = f"📅 基本: {base}枚 ／ 今日の調整: {today}枚"
+            pace_color = "#e06c00"
+        else:
+            pace_label = f"📅 1日の学習ペース: {base}枚"
+            pace_color = "#555"
+
+        st.markdown(
+            f"<div style='font-size:0.9rem; color:{pace_color}; "
+            f"margin-bottom:4px;'>{pace_label}</div>",
+            unsafe_allow_html=True,
+        )
+
+        # ── 基本ペース変更（折りたたみ） ──
+        with st.expander("📋 基本ペースを変更する（学習計画の設定）"):
+            st.caption("先生と相談して決めた1日の目標枚数です。変更は慎重に！")
+            new_base = st.select_slider(
+                "1日の基本枚数",
+                options=[5, 10, 15, 20, 25, 30],
+                value=base if base in [5, 10, 15, 20, 25, 30] else 10,
+                key="base_slider",
+            )
+            col_base1, col_base2 = st.columns([2, 1])
+            with col_base1:
+                st.caption("📌 目安: 初めて5枚 / 標準10枚 / 試験前20〜30枚")
+            with col_base2:
+                if st.button("✅ 基本ペースを保存", key="save_base"):
+                    if save_base_limit(username, new_base):
+                        st.success(f"基本ペースを {new_base}枚 に設定しました！")
+                        st.rerun()
+
+        # ── 今日だけ調整（折りたたみ） ──
+        with st.expander("⚡ 今日だけ枚数を調整する"):
+            st.caption("今日だけ増やしたり減らしたりできます。翌日は基本ペースに自動で戻ります。")
+            adj_options = [3, 5, 10, 15, 20, 25, 30]
+            adj_default = today if today in adj_options else eff
+            if adj_default not in adj_options:
+                adj_default = adj_options[0]
+            new_today = st.select_slider(
+                "今日の枚数",
+                options=adj_options,
+                value=adj_default,
+                key="today_slider",
+            )
+            col_t1, col_t2 = st.columns([2, 1])
+            with col_t1:
+                if new_today < base:
+                    st.caption(f"⚠️ 基本より {base - new_today}枚 少なめ")
+                elif new_today > base:
+                    st.caption(f"🔥 基本より {new_today - base}枚 多め！")
+                else:
+                    st.caption("👍 基本ペース通り")
+            with col_t2:
+                if st.button("⚡ 今日はこの枚数で！", key="save_today"):
+                    if save_today_limit(username, new_today):
+                        st.success(f"今日は {new_today}枚 で学習します！")
+                        st.rerun()
 
     st.markdown("---")
 
