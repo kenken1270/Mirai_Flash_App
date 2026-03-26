@@ -1,6 +1,9 @@
 # flash_app.py — 未来塾 単語暗記アプリ（SM-2忘却曲線）改訂版
 import streamlit as st
 import random
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 from supabase import create_client
 from datetime import date, timedelta
 
@@ -707,6 +710,87 @@ def calc_level_progress(total_xp):
     return (total_xp - xp_current_level) / (xp_next_level - xp_current_level)
 
 
+def load_daily_stats(username):
+    """
+    過去30日分の日別学習統計を返す
+    戻り値: list[dict] = [
+        {"date": "2026-03-01", "xp": 45, "cards": 10, "accuracy": 80.0},
+        ...
+    ]
+    """
+    logs = load_review_logs(username)
+    if not logs:
+        return []
+
+    from collections import defaultdict
+    daily = defaultdict(lambda: {"xp": 0, "total": 0, "correct": 0})
+
+    for row in logs:
+        d = row.get("reviewed_at", "")[:10]
+        q = row.get("quality", 0)
+        if q >= 5:
+            xp = 10
+        elif q >= 4:
+            xp = 6
+        elif q >= 3:
+            xp = 3
+        else:
+            xp = 1
+        daily[d]["xp"] += xp
+        daily[d]["total"] += 1
+        if q >= 3:
+            daily[d]["correct"] += 1
+
+    # 過去30日分に絞る & ソート
+    from datetime import date, timedelta
+    today = date.today()
+    result = []
+    for i in range(29, -1, -1):
+        d = (today - timedelta(days=i)).isoformat()
+        stats = daily.get(d, {"xp": 0, "total": 0, "correct": 0})
+        accuracy = (
+            stats["correct"] / stats["total"] * 100
+            if stats["total"] > 0 else None
+        )
+        result.append({
+            "date": d,
+            "xp": stats["xp"],
+            "cards": stats["total"],
+            "accuracy": accuracy,
+        })
+    return result
+
+
+def load_cumulative_xp(username):
+    """
+    過去30日分の累計XP推移を返す
+    戻り値: list[dict] = [{"date": "...", "cumulative_xp": 120}, ...]
+    """
+    daily = load_daily_stats(username)
+    # 全履歴の累計XPの開始値を計算
+    all_logs = load_review_logs(username)
+    from datetime import date, timedelta
+    cutoff = (date.today() - timedelta(days=29)).isoformat()
+
+    # cutoff以前のXP合計
+    base_xp = 0
+    for row in all_logs:
+        d = row.get("reviewed_at", "")[:10]
+        if d < cutoff:
+            q = row.get("quality", 0)
+            if q >= 5: base_xp += 10
+            elif q >= 4: base_xp += 6
+            elif q >= 3: base_xp += 3
+            else: base_xp += 1
+
+    cumulative = []
+    running = base_xp
+    for day in daily:
+        running += day["xp"]
+        cumulative.append({"date": day["date"], "cumulative_xp": running})
+    return cumulative
+
+
 def show_result():
     results = st.session_state["flash_session_results"]
     username = st.session_state["flash_user"]
@@ -878,6 +962,132 @@ def show_result():
         st.info(
             f"💡 **{len(ng)}枚**は明日また出てきます。大丈夫、繰り返すことで必ず覚えられます！"
         )
+
+    # ── 成長グラフ ───────────────────────────
+    st.markdown("---")
+    st.markdown("### 📈 あなたの成長グラフ")
+
+    daily_stats = load_daily_stats(username)
+    cum_stats = load_cumulative_xp(username)
+
+    # 学習があった日だけ抽出
+    active_days = [d for d in daily_stats if d["cards"] > 0]
+
+    if len(active_days) < 2:
+        st.info("📊 グラフは2日以上学習すると表示されます！明日も来てね 🔥")
+    else:
+        tab1, tab2, tab3 = st.tabs(["⚡ XP推移", "📚 学習枚数", "🎯 正解率"])
+
+        # ── Tab1: 累計XP折れ線グラフ ──────────
+        with tab1:
+            df_cum = pd.DataFrame(cum_stats)
+            # 学習のある日だけマーカーを強調
+            df_cum["has_activity"] = df_cum["date"].isin(
+                [d["date"] for d in active_days]
+            )
+            fig1 = go.Figure()
+            fig1.add_trace(go.Scatter(
+                x=df_cum["date"],
+                y=df_cum["cumulative_xp"],
+                mode="lines+markers",
+                line=dict(color="#667eea", width=3),
+                marker=dict(
+                    size=[8 if h else 4 for h in df_cum["has_activity"]],
+                    color=["#764ba2" if h else "#cccccc"
+                           for h in df_cum["has_activity"]],
+                ),
+                fill="tozeroy",
+                fillcolor="rgba(102,126,234,0.15)",
+                name="累計XP",
+                hovertemplate="%{x}<br>累計XP: %{y}<extra></extra>",
+            ))
+            fig1.update_layout(
+                title="累計XPの推移（過去30日）",
+                xaxis_title="日付",
+                yaxis_title="累計XP",
+                plot_bgcolor="white",
+                paper_bgcolor="white",
+                font=dict(family="sans-serif", size=12),
+                margin=dict(l=40, r=20, t=40, b=40),
+                hovermode="x unified",
+            )
+            st.plotly_chart(fig1, use_container_width=True)
+            # 総合コメント
+            total_active = len(active_days)
+            st.caption(f"🔥 過去30日で **{total_active}日** 学習しました！")
+
+        # ── Tab2: 日別学習枚数棒グラフ ────────
+        with tab2:
+            df_daily = pd.DataFrame(daily_stats)
+            fig2 = go.Figure()
+            fig2.add_trace(go.Bar(
+                x=df_daily["date"],
+                y=df_daily["cards"],
+                marker_color=[
+                    "#667eea" if c > 0 else "#eeeeee"
+                    for c in df_daily["cards"]
+                ],
+                hovertemplate="%{x}<br>学習枚数: %{y}枚<extra></extra>",
+                name="学習枚数",
+            ))
+            fig2.update_layout(
+                title="日別 学習枚数（過去30日）",
+                xaxis_title="日付",
+                yaxis_title="枚数",
+                plot_bgcolor="white",
+                paper_bgcolor="white",
+                font=dict(family="sans-serif", size=12),
+                margin=dict(l=40, r=20, t=40, b=40),
+            )
+            st.plotly_chart(fig2, use_container_width=True)
+            max_day = df_daily.loc[df_daily["cards"].idxmax()]
+            if max_day["cards"] > 0:
+                st.caption(
+                    f"🏅 最多学習日: **{max_day['date']}** ({int(max_day['cards'])}枚)"
+                )
+
+        # ── Tab3: 日別正解率折れ線グラフ ──────
+        with tab3:
+            df_acc = pd.DataFrame([
+                d for d in daily_stats
+                if d["accuracy"] is not None
+            ])
+            if df_acc.empty:
+                st.info("正解率データがありません")
+            else:
+                fig3 = go.Figure()
+                fig3.add_trace(go.Scatter(
+                    x=df_acc["date"],
+                    y=df_acc["accuracy"],
+                    mode="lines+markers",
+                    line=dict(color="#00b09b", width=3),
+                    marker=dict(size=8, color="#00b09b"),
+                    fill="tozeroy",
+                    fillcolor="rgba(0,176,155,0.12)",
+                    name="正解率",
+                    hovertemplate="%{x}<br>正解率: %{y:.1f}%<extra></extra>",
+                ))
+                # 80%ラインを点線で追加
+                fig3.add_hline(
+                    y=80,
+                    line_dash="dot",
+                    line_color="#ffa500",
+                    annotation_text="目標 80%",
+                    annotation_position="bottom right",
+                )
+                fig3.update_layout(
+                    title="日別 正解率（過去30日）",
+                    xaxis_title="日付",
+                    yaxis_title="正解率 (%)",
+                    yaxis_range=[0, 105],
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="sans-serif", size=12),
+                    margin=dict(l=40, r=20, t=40, b=40),
+                )
+                st.plotly_chart(fig3, use_container_width=True)
+                avg_acc = df_acc["accuracy"].mean()
+                st.caption(f"📊 過去30日の平均正解率: **{avg_acc:.1f}%**")
 
     # ── アクションボタン ─────────────────────
     st.markdown("---")
