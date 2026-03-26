@@ -653,30 +653,258 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             st.rerun()
 
 # ─────────────────────────────
-# 結果画面（変更なし）
+# 結果画面（XP・レベル）
 # ─────────────────────────────
+def calc_session_xp(results):
+    """セッションの獲得XPを計算"""
+    xp = 0
+    for r in results:
+        q = r["quality"]
+        if q >= 5:
+            xp += 10
+        elif q >= 4:
+            xp += 6
+        elif q >= 3:
+            xp += 3
+        else:
+            xp += 1
+    return xp
+
+
+def calc_total_xp(username):
+    """累計XPをreview_logsから計算"""
+    logs = load_review_logs(username)
+    xp = 0
+    for row in logs:
+        q = row.get("quality", 0)
+        if q >= 5:
+            xp += 10
+        elif q >= 4:
+            xp += 6
+        elif q >= 3:
+            xp += 3
+        else:
+            xp += 1
+    return xp
+
+
+def calc_level(total_xp):
+    """XPからレベルを計算（RPG式成長曲線）"""
+    import math
+
+    return int(math.sqrt(total_xp / 10)) + 1
+
+
+def calc_level_progress(total_xp):
+    """現レベル内の進捗率(0.0〜1.0)を返す"""
+    import math
+
+    level = calc_level(total_xp)
+    xp_current_level = ((level - 1) ** 2) * 10
+    xp_next_level = (level ** 2) * 10
+    if xp_next_level == xp_current_level:
+        return 1.0
+    return (total_xp - xp_current_level) / (xp_next_level - xp_current_level)
+
+
 def show_result():
     results = st.session_state["flash_session_results"]
-    st.title("🎉 今日の学習完了！")
+    username = st.session_state["flash_user"]
 
-    perfect = [r for r in results if r["quality"] >= 4]
+    perfect = [r for r in results if r["quality"] >= 5]
+    good = [r for r in results if r["quality"] == 4]
     ok = [r for r in results if r["quality"] == 3]
     ng = [r for r in results if r["quality"] < 3]
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("🎯 バッチリ", f"{len(perfect)} 枚")
-    col2.metric("🤔 まあまあ", f"{len(ok)} 枚")
-    col3.metric("😰 要復習", f"{len(ng)} 枚")
+    session_xp = calc_session_xp(results)
+    total_xp = calc_total_xp(username)
+    level = calc_level(total_xp)
+    lv_progress = calc_level_progress(total_xp)
+    accuracy = (
+        len([r for r in results if r["quality"] >= 3]) / len(results) * 100
+        if results
+        else 0
+    )
 
+    # ── CSS ──────────────────────────────────
+    st.markdown(
+        """
+    <style>
+    .result-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 24px; padding: 32px 24px;
+        text-align: center; color: white; margin-bottom: 20px;
+    }
+    .result-title { font-size: 2rem; font-weight: bold; margin-bottom: 4px; }
+    .result-sub   { font-size: 1rem; opacity: 0.85; }
+    .xp-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.25);
+        border-radius: 20px; padding: 6px 20px;
+        font-size: 1.4rem; font-weight: bold;
+        margin-top: 12px;
+    }
+    .stat-card {
+        border-radius: 16px; padding: 16px 10px;
+        text-align: center; color: white;
+        font-weight: bold;
+    }
+    .word-pill {
+        display: inline-block;
+        border-radius: 20px; padding: 4px 14px;
+        margin: 4px; font-size: 0.9rem; font-weight: bold;
+        color: white;
+    }
+    .level-bar-wrap {
+        background: #f0f0f0; border-radius: 10px;
+        overflow: hidden; height: 14px; margin: 6px 0;
+    }
+    .level-bar-fill {
+        height: 100%; border-radius: 10px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: width 1s ease;
+    }
+    </style>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    # ── 花火演出 ─────────────────────────────
+    if accuracy >= 80:
+        st.balloons()
+
+    # ── ヒーローバナー ────────────────────────
+    if accuracy == 100:
+        title_text = "🏆 パーフェクト！！"
+        sub_text = "全問正解！完璧な学習でした！"
+    elif accuracy >= 80:
+        title_text = "🎉 素晴らしい！"
+        sub_text = f"正解率 {accuracy:.0f}% — この調子で続けよう！"
+    elif accuracy >= 50:
+        title_text = "💪 よく頑張った！"
+        sub_text = f"正解率 {accuracy:.0f}% — 復習で差をつけよう！"
+    else:
+        title_text = "📖 今日はここから！"
+        sub_text = f"正解率 {accuracy:.0f}% — 繰り返せば必ず覚えられる！"
+
+    st.markdown(
+        f"""
+    <div class="result-hero">
+        <div class="result-title">{title_text}</div>
+        <div class="result-sub">{sub_text}</div>
+        <div class="xp-badge">⚡ +{session_xp} XP ゲット！</div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    # ── 4指標カード（1行）────────────────────
+    c1, c2, c3, c4 = st.columns(4)
+    stats = [
+        (c1, "⭐ バッチリ", len(perfect), "#667eea"),
+        (c2, "🟢 だいたい", len(good), "#00b09b"),
+        (c3, "🔶 うっすら", len(ok), "#ffa500"),
+        (c4, "❌ 要復習", len(ng), "#ff4b4b"),
+    ]
+    for col, label, count, color in stats:
+        with col:
+            st.markdown(
+                f"""
+            <div class="stat-card" style="background:{color};">
+                <div style="font-size:1.5rem;">{count}枚</div>
+                <div style="font-size:0.78rem; margin-top:4px;">{label}</div>
+            </div>
+            """,
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+    # ── レベル・XPバー ───────────────────────
+    st.markdown("---")
+    st.markdown(f"### 🎮 Lv.{level} — 累計 {total_xp} XP")
+    st.markdown(
+        f"""
+    <div class="level-bar-wrap">
+        <div class="level-bar-fill" style="width:{int(lv_progress*100)}%;"></div>
+    </div>
+    <div style="font-size:0.78rem; color:#888; text-align:right;">
+        次のレベルまで {int((1-lv_progress)*100)}%
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    # ── 単語別結果（ピル表示）────────────────
+    st.markdown("---")
+    st.markdown("### 📋 今日の単語まとめ")
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown("**✅ 覚えられた単語**")
+        covered = perfect + good
+        if covered:
+            pills = " ".join(
+                [
+                    f'<span class="word-pill" style="background:#00b09b;">{r["word"]}</span>'
+                    for r in covered
+                ]
+            )
+            st.markdown(pills, unsafe_allow_html=True)
+        else:
+            st.caption("まだありません")
+
+    with col_b:
+        st.markdown("**🔁 次回また挑戦**")
+        retry = ok + ng
+        if retry:
+            pills = " ".join(
+                [
+                    f'<span class="word-pill" style="background:#ffa500;">{r["word"]}</span>'
+                    for r in ok
+                ]
+                + [
+                    f'<span class="word-pill" style="background:#ff4b4b;">{r["word"]}</span>'
+                    for r in ng
+                ]
+            )
+            st.markdown(pills, unsafe_allow_html=True)
+        else:
+            st.caption("なし！完璧です 🎉")
+
+    # ── 次回復習日の予告 ─────────────────────
     if ng:
-        st.warning("次回すぐに復習するカード:")
-        for r in ng:
-            st.write(f"- {r['word']}")
+        st.markdown("---")
+        st.info(
+            f"💡 **{len(ng)}枚**は明日また出てきます。大丈夫、繰り返すことで必ず覚えられます！"
+        )
 
-    if st.button("🏠 ホームへ戻る", type="primary"):
-        st.session_state["flash_mode"] = "home"
-        st.session_state["flash_session_results"] = []
-        st.rerun()
+    # ── アクションボタン ─────────────────────
+    st.markdown("---")
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("🏠 ホームへ戻る", type="primary", use_container_width=True):
+            st.session_state["flash_mode"] = "home"
+            st.session_state["flash_session_results"] = []
+            st.rerun()
+    with b2:
+        if st.button("🔁 もう一度チャレンジ", use_container_width=True):
+            ng_words = [r["word"] for r in ng + ok]
+            selected_set_id = st.session_state.get("selected_set_id")
+            if selected_set_id:
+                all_cards = load_flashcards_by_set(selected_set_id)
+                retry_queue = [c for c in all_cards if c["word"] in ng_words]
+                if retry_queue:
+                    random.shuffle(retry_queue)
+                    st.session_state["flash_queue"] = retry_queue
+                    st.session_state["flash_index"] = 0
+                    st.session_state["flash_show_answer"] = False
+                    st.session_state["flash_session_results"] = []
+                    st.session_state["flash_mode"] = "study"
+                    st.rerun()
+            st.session_state["flash_mode"] = "home"
+            st.session_state["flash_session_results"] = []
+            st.rerun()
 
 # ─────────────────────────────
 # 画面ルーティング
