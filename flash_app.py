@@ -489,32 +489,80 @@ def show_home(username):
         # ボタン色をCSSで一括適用（キー名で特定）
         st.markdown("""
         <style>
-        /* 苦手だけ復習 → 赤 */
+        /* 苦手だけ復習 → オレンジ */
         [data-testid="stBaseButton-secondary"]:nth-of-type(1) {
-            background: linear-gradient(135deg,#ff6b6b,#ee5a24) !important;
-            color:white !important; border:none !important;
-            border-radius:16px !important; min-height:110px !important;
-            font-weight:bold !important; white-space:pre-wrap !important;
-            line-height:1.6 !important;
-            box-shadow: 0 6px 16px rgba(238,90,36,0.3) !important;
+            background: #FF6B35 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 18px !important;
+            min-height: 110px !important;
+            font-size: 0.95rem !important;
+            font-weight: bold !important;
+            white-space: pre-wrap !important;
+            line-height: 1.6 !important;
+            box-shadow: 0 6px 0 #CC4A1A !important;
+            transition: transform 0.1s, box-shadow 0.1s !important;
         }
-        /* 先取り → 紫 */
+        [data-testid="stBaseButton-secondary"]:nth-of-type(1):active {
+            transform: translateY(4px) !important;
+            box-shadow: 0 2px 0 #CC4A1A !important;
+        }
+
+        /* 先取りチャレンジ → ターコイズ */
         [data-testid="stBaseButton-secondary"]:nth-of-type(2) {
-            background: linear-gradient(135deg,#667eea,#764ba2) !important;
-            color:white !important; border:none !important;
-            border-radius:16px !important; min-height:110px !important;
-            font-weight:bold !important; white-space:pre-wrap !important;
-            line-height:1.6 !important;
-            box-shadow: 0 6px 16px rgba(102,126,234,0.3) !important;
+            background: #4ECDC4 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 18px !important;
+            min-height: 110px !important;
+            font-size: 0.95rem !important;
+            font-weight: bold !important;
+            white-space: pre-wrap !important;
+            line-height: 1.6 !important;
+            box-shadow: 0 6px 0 #2BA89F !important;
+            transition: transform 0.1s, box-shadow 0.1s !important;
         }
-        /* 全部通し → 緑 */
+        [data-testid="stBaseButton-secondary"]:nth-of-type(2):active {
+            transform: translateY(4px) !important;
+            box-shadow: 0 2px 0 #2BA89F !important;
+        }
+
+        /* 全部通し復習 → イエロー */
         [data-testid="stBaseButton-secondary"]:nth-of-type(3) {
-            background: linear-gradient(135deg,#00b09b,#00d4aa) !important;
-            color:white !important; border:none !important;
-            border-radius:16px !important; min-height:110px !important;
-            font-weight:bold !important; white-space:pre-wrap !important;
-            line-height:1.6 !important;
-            box-shadow: 0 6px 16px rgba(0,176,155,0.3) !important;
+            background: #FFD93D !important;
+            color: #333333 !important;
+            border: none !important;
+            border-radius: 18px !important;
+            min-height: 110px !important;
+            font-size: 0.95rem !important;
+            font-weight: bold !important;
+            white-space: pre-wrap !important;
+            line-height: 1.6 !important;
+            box-shadow: 0 6px 0 #CCA800 !important;
+            transition: transform 0.1s, box-shadow 0.1s !important;
+        }
+        [data-testid="stBaseButton-secondary"]:nth-of-type(3):active {
+            transform: translateY(4px) !important;
+            box-shadow: 0 2px 0 #CCA800 !important;
+        }
+
+        /* タイムアタック → マゼンタピンク */
+        [data-testid="stBaseButton-primary"] {
+            background: #FF3CAC !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 18px !important;
+            font-size: 1.1rem !important;
+            font-weight: bold !important;
+            white-space: pre-wrap !important;
+            line-height: 1.6 !important;
+            box-shadow: 0 6px 0 #CC1A85 !important;
+            transition: transform 0.1s, box-shadow 0.1s !important;
+            padding: 14px !important;
+        }
+        [data-testid="stBaseButton-primary"]:active {
+            transform: translateY(4px) !important;
+            box-shadow: 0 2px 0 #CC1A85 !important;
         }
         </style>
         """, unsafe_allow_html=True)
