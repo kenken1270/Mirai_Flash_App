@@ -709,6 +709,7 @@ for key, default in [
     ("flash_user", ""),
     ("user_lang", "ja"),
     ("flash_mode", "home"),
+    ("show_settings", False),
     ("flash_queue", []),
     ("flash_index", 0),
     ("flash_show_answer", False),
@@ -750,156 +751,131 @@ username = st.session_state["flash_user"]
 # ホーム画面
 # ─────────────────────────────
 def show_home(username):
+    # ── CSS ────────────────────────────────
     st.markdown("""
     <style>
-    .stButton>button[kind="primary"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white; font-size: 1.2rem;
-        border-radius: 12px; padding: 0.6rem 1rem; border: none;
-    }
     .badge-red {
         background:#ff4b4b; color:white;
         border-radius:20px; padding:4px 14px;
         font-weight:bold; display:inline-block; margin:4px;
-        font-size: 1rem;
+        font-size:1rem;
     }
     .badge-yellow {
         background:#ffa500; color:white;
         border-radius:20px; padding:4px 14px;
         font-weight:bold; display:inline-block; margin:4px;
-        font-size: 1rem;
+        font-size:1rem;
+    }
+    .mini-card {
+        background:#f8f9ff; border:1px solid #e0e4ff;
+        border-radius:12px; padding:10px 16px;
+        margin-bottom:8px; font-size:0.9rem; color:#444;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # 言語切替
-    lang_col, _ = st.columns([1, 3])
-    with lang_col:
+    # ── モード判定 ─────────────────────────
+    show_settings = st.session_state.get("show_settings", False)
+
+    # ── ヘッダー行（常に表示） ──────────────
+    col_title, col_gear = st.columns([5, 1])
+    with col_title:
+        if st.session_state.get("user_lang") == "zh":
+            st.markdown(f"### 你好，{username}！")
+        else:
+            st.markdown(f"### こんにちは、{username}さん！")
+    with col_gear:
+        gear_label = "✖ 閉じる" if show_settings else "⚙️ 設定"
+        if st.button(gear_label, key="toggle_settings"):
+            st.session_state["show_settings"] = not show_settings
+            st.rerun()
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 設定ページ
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    if show_settings:
+        st.markdown("---")
+        st.markdown("#### ⚙️ 設定")
+
+        # 言語切替
         if st.button(T("lang_switch"), key="lang_toggle"):
             new_lang = "zh" if st.session_state["user_lang"] == "ja" else "ja"
             st.session_state["user_lang"] = new_lang
             save_user_lang(username, new_lang)
             st.rerun()
 
-    # ゾーン①: ウェルカム
-    if st.session_state.get("user_lang") == "zh":
-        st.success(f"🎉 你好，{username}{T('welcome')}")
-    else:
-        st.success(f"🎉 こんにちは、{username}{T('welcome')}")
-    streak = compute_learning_streak(username)
-    if streak >= 1:
-        st.info(f"🔥 {streak}{T('streak_msg')}")
-    else:
-        st.info(T("streak_zero"))
+        st.markdown("---")
 
-    st.markdown("---")
-
-    # ゾーン②: 教材選択
-    st.markdown(f"### {T('select_material')}")
-    sets = load_flashcard_sets()
-    if not sets:
-        st.warning(T("no_material"))
-        if st.button(T("logout")):
-            st.session_state["flash_user"] = ""
-            st.rerun()
-        return
-
-    set_id_list = [s["id"] for s in sets]
-    set_name_map = {s["id"]: s["set_name"] for s in sets}
-    set_info_map = {s["id"]: s for s in sets}
-
-    # 前回選択を維持
-    prev = st.session_state.get("selected_set_id")
-    default_idx = set_id_list.index(prev) if prev in set_id_list else 0
-
-    selected_set_id = st.selectbox(
-        T("material_label"),
-        options=set_id_list,
-        index=default_idx,
-        format_func=lambda x: set_name_map[x]
-    )
-    st.session_state["selected_set_id"] = selected_set_id
-
-    info = set_info_map[selected_set_id]
-    st.caption(f"📂 {info.get('category','')}  ／  {info.get('grade','')}  ／  {info.get('description','')}")
-
-    cards = load_flashcards_by_set(selected_set_id)
-    total = len(cards)
-
-    if total == 0:
-        st.warning(T("no_cards_set"))
-    else:
-        # ページ範囲・item番号
-        page_ranges = [c.get("page_range") for c in cards if c.get("page_range")]
-        item_nos = [c.get("item_no") for c in cards if c.get("item_no") is not None]
-        if page_ranges:
-            st.markdown(
-                f"{T('page_range')} **{min(page_ranges)} 〜 {max(page_ranges)}**"
+        # 教材選択
+        st.markdown("##### 📚 教材を選ぶ")
+        sets = load_flashcard_sets()
+        if sets:
+            set_id_list = [s["id"] for s in sets]
+            set_name_map = {s["id"]: s["set_name"] for s in sets}
+            set_info_map = {s["id"]: s for s in sets}
+            prev = st.session_state.get("selected_set_id")
+            default_idx = set_id_list.index(prev) if prev in set_id_list else 0
+            selected_set_id = st.selectbox(
+                "教材",
+                options=set_id_list,
+                index=default_idx,
+                format_func=lambda x: set_name_map[x],
+                key="settings_set_select",
             )
-        if item_nos:
-            st.markdown(
-                f"{T('item_range')} **No.{min(item_nos)} 〜 No.{max(item_nos)}**"
+            st.session_state["selected_set_id"] = selected_set_id
+            info = set_info_map[selected_set_id]
+            st.caption(
+                f"📂 {info.get('category','')} ／ {info.get('grade','')} ／ {info.get('description','')}"
             )
+        else:
+            st.warning(T("no_material"))
 
-        # 進捗バー
-        correct = count_correct_once_in_set(username, selected_set_id)
-        progress_val = correct / total if total > 0 else 0
-        st.progress(progress_val)
-        st.caption(
-            f"✅ {correct} / {total} {T('progress_caption')}（{int(progress_val*100)}%）"
-        )
+        st.markdown("---")
 
-        # ── 学習ペース設定 UI ─────────────────────
+        # 学習ペース設定
+        st.markdown("##### 📅 学習ペース設定")
         plan = load_study_plan(username)
         base = plan["base"]
         today = plan["today"]
         eff = plan["effective"]
 
         st.markdown(
-            f"<div style='font-size:0.9rem; color:#555; margin-bottom:8px;'>"
-            f"📅 1日の学習ペース: <b>{eff}枚</b>"
-            + (f"　（基本: {base}枚 / 今日の調整: {today}枚）" if today is not None and today != base else "")
+            f"<div style='font-size:0.9rem;color:#555;margin-bottom:8px;'>"
+            f"現在の設定: <b>{eff}枚/日</b>"
+            + (f"　（基本: {base}枚 / 今日: {today}枚）" if today is not None and today != base else "")
             + "</div>",
             unsafe_allow_html=True,
         )
-
-        # 基本ペース・今日の調整をラジオボタンで選択
         pace_options = [3, 5, 10, 15, 20, 25, 30]
-
         pace_mode = st.radio(
-            "設定モードを選ぶ",
-            options=["📋 基本ペースを変更する", "⚡ 今日だけ調整する"],
+            "設定モード",
+            options=["📋 基本ペースを変更", "⚡ 今日だけ調整"],
             horizontal=True,
             key="pace_mode_radio",
             label_visibility="collapsed",
         )
-
-        if pace_mode == "📋 基本ペースを変更する":
+        if pace_mode == "📋 基本ペースを変更":
             st.caption("先生と相談して決めた1日の目標枚数です。")
             new_base = st.radio(
-                "1日の基本枚数を選ぶ",
+                "基本枚数",
                 options=pace_options,
                 index=pace_options.index(base) if base in pace_options else 1,
                 horizontal=True,
                 key="base_radio",
                 format_func=lambda x: f"{x}枚",
             )
-            if base in pace_options:
-                st.caption(
-                    "目安: 3〜5枚=初めて / 10枚=標準 / 20枚以上=試験前"
-                )
+            st.caption("目安: 3〜5枚=初めて / 10枚=標準 / 20枚以上=試験前")
             if st.button("✅ 基本ペースを保存", key="save_base"):
                 if save_base_limit(username, new_base):
                     st.success(f"基本ペースを {new_base}枚 に設定しました！")
                     st.rerun()
-
-        else:  # 今日だけ調整
+        else:
             st.caption("今日だけ変更できます。翌日は基本ペースに自動で戻ります。")
             adj_default = today if (today is not None and today in pace_options) else eff
             if adj_default not in pace_options:
                 adj_default = 10
             new_today = st.radio(
-                "今日の枚数を選ぶ",
+                "今日の枚数",
                 options=pace_options,
                 index=pace_options.index(adj_default),
                 horizontal=True,
@@ -907,69 +883,118 @@ def show_home(username):
                 format_func=lambda x: f"{x}枚",
             )
             diff = new_today - base
-            if diff < 0:
-                st.caption(f"基本より {abs(diff)}枚 少なめ")
-            elif diff > 0:
-                st.caption(f"基本より {diff}枚 多め！🔥")
-            else:
-                st.caption("基本ペース通り 👍")
+            st.caption(
+                f"基本より {abs(diff)}枚 {'少なめ' if diff < 0 else '多め！🔥' if diff > 0 else '→ 基本ペース通り 👍'}"
+            )
             if st.button("⚡ 今日はこの枚数で！", key="save_today"):
                 if save_today_limit(username, new_today):
                     st.success(f"今日は {new_today}枚 で学習します！")
                     st.rerun()
 
+        st.markdown("---")
+
+        # ニックネーム設定
+        st.markdown("##### 🎮 ランキングネーム")
+        current_nick = load_user_nickname(username)
+        if current_nick:
+            st.caption(f"現在: **{current_nick}**")
+        nick_input = st.text_input(
+            "新しいニックネーム（2〜8文字）",
+            max_chars=8,
+            placeholder="例: たんごマスター",
+            key="settings_nick",
+        )
+        if st.button("💾 保存", key="save_nick"):
+            if len(nick_input) < 2:
+                st.error("2文字以上で入力してください")
+            else:
+                if save_user_nickname(username, nick_input):
+                    st.success(f"「{nick_input}」に変更しました！")
+                    st.balloons()
+                    st.rerun()
+
+        st.markdown("---")
+
+        # ログアウト
+        if st.button(T("logout"), key="settings_logout"):
+            st.session_state["flash_user"] = ""
+            st.session_state["show_settings"] = False
+            st.rerun()
+
+        return  # 設定ページ表示中はホームコンテンツを表示しない
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ホームページ（学習特化・シンプル）
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    # 連続日数
+    streak = compute_learning_streak(username)
+    if streak >= 1:
+        st.info(f"🔥 {streak}{T('streak_msg')}")
+    else:
+        st.info(T("streak_zero"))
+
+    # 教材が未選択の場合は設定へ誘導
+    sets = load_flashcard_sets()
+    if not sets:
+        st.warning(T("no_material"))
+        return
+
+    set_id_list = [s["id"] for s in sets]
+    set_info_map = {s["id"]: s for s in sets}
+    prev = st.session_state.get("selected_set_id")
+    if prev not in set_id_list:
+        st.session_state["selected_set_id"] = set_id_list[0]
+    selected_set_id = st.session_state["selected_set_id"]
+    info = set_info_map[selected_set_id]
+    cards = load_flashcards_by_set(selected_set_id)
+    total = len(cards)
+
+    # 教材情報（コンパクト1行）
+    set_name_map = {s["id"]: s["set_name"] for s in sets}
+    st.markdown(
+        f"<div class='mini-card'>📚 <b>{set_name_map[selected_set_id]}</b>"
+        f"　{info.get('category','')} / {info.get('grade','')}</div>",
+        unsafe_allow_html=True,
+    )
+
+    # 進捗バー
+    if total > 0:
+        correct = count_correct_once_in_set(username, selected_set_id)
+        progress_val = correct / total
+        st.progress(progress_val)
+        st.caption(f"✅ {correct} / {total} {T('progress_caption')}（{int(progress_val*100)}%）")
+
     st.markdown("---")
 
-    # ゾーン③: アクション
+    # ── 今日やること（メイン） ──────────────────
     st.markdown(f"### {T('today_task')}")
     new_count, due_count = count_new_and_due_for_set(username, selected_set_id)
+    plan = load_study_plan(username)
     st.markdown(
         f'<span class="badge-red">{T("badge_new")} {new_count}{T("cards")}</span>'
         f'<span class="badge-yellow">{T("badge_due")} {due_count}{T("cards")}</span>',
         unsafe_allow_html=True,
     )
+    st.caption(f"📅 1日のペース: {plan['effective']}枚")
     st.markdown("")
 
     total_today = new_count + due_count
-    if total_today == 0:
-        # ニックネーム設定
-        current_nick = load_user_nickname(username)
-        if not current_nick:
-            st.markdown("---")
-            st.markdown(T("nick_title"))
-            st.markdown(
-                f"""
-            <div style="background:#fff8e1; border:2px solid #ffd200;
-                border-radius:14px; padding:16px; margin-bottom:12px;">
-                <div style="font-size:1rem; font-weight:bold; color:#333;">
-                    {T("nick_box1")}
-                </div>
-                <div style="font-size:0.85rem; color:#666; margin-top:4px;">
-                    {T("nick_box2")}
-                </div>
-            </div>
-            """,
-                unsafe_allow_html=True,
-            )
-            nick_input = st.text_input(
-                T("nick_field"),
-                max_chars=8,
-                placeholder=T("nick_placeholder"),
-            )
-            if st.button(T("nick_submit"), type="primary"):
-                if len(nick_input) < 2:
-                    st.error(T("nick_err"))
-                else:
-                    if save_user_nickname(username, nick_input):
-                        st.success(T("nick_ok").format(nick=nick_input))
-                        st.balloons()
-                        st.rerun()
-        else:
-            st.caption(T("nick_caption").format(nick=current_nick))
-
+    if total_today > 0:
+        if st.button(T("start_study"), type="primary", use_container_width=True):
+            queue = load_due_cards(username, selected_set_id)
+            if queue:
+                st.session_state["flash_queue"] = queue
+                st.session_state["flash_index"] = 0
+                st.session_state["flash_show_answer"] = False
+                st.session_state["flash_session_results"] = []
+                st.session_state["flash_mode"] = "study"
+                st.rerun()
+            else:
+                st.warning("カードが見つかりませんでした。")
+    else:
+        # 今日の分が終わった場合
         st.success(T("all_done"))
-
-        # ── 追加学習メニュー ────────────────────
         st.markdown(f"#### {T('more_study')}")
 
         # 称号表示
@@ -986,56 +1011,29 @@ def show_home(username):
         }
         icon, title = titles.get(min(level, 7), ("🌟", "たんご の でんせつ"))
         st.markdown(
-            f"""
-        <div style="background:linear-gradient(135deg,#667eea,#764ba2);
-            border-radius:16px; padding:14px 20px; color:white;
-            display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-            <span style="font-size:2rem;">{icon}</span>
-            <div>
-                <div style="font-size:0.8rem; opacity:0.85;">{T("current_title")}</div>
-                <div style="font-size:1.2rem; font-weight:bold;">
-                    Lv.{level} {title}
-                </div>
-                <div style="font-size:0.78rem; opacity:0.75;">
-                    {T("total_xp_lbl")} {total_xp} XP
-                </div>
-            </div>
-        </div>
-        """,
+            f"<div style='background:linear-gradient(135deg,#667eea,#764ba2);"
+            f"border-radius:16px;padding:14px 20px;color:white;"
+            f"display:flex;align-items:center;gap:12px;margin-bottom:16px;'>"
+            f"<span style='font-size:2rem;'>{icon}</span>"
+            f"<div><div style='font-size:0.8rem;opacity:0.85;'>{T('current_title')}</div>"
+            f"<div style='font-size:1.2rem;font-weight:bold;'>Lv.{level} {title}</div>"
+            f"<div style='font-size:0.78rem;opacity:0.75;'>{T('total_xp_lbl')} {total_xp} XP</div>"
+            f"</div></div>",
             unsafe_allow_html=True,
         )
 
-        # 3つの追加学習ボタン
         ex1, ex2, ex3 = st.columns(3)
-
         with ex1:
-            st.markdown("""
-            <style>
-            div[data-testid="stButton"][id="btn_weak"] button {
-                background: linear-gradient(135deg,#ff6b6b,#ee5a24) !important;
-                color:white !important; border:none !important;
-                border-radius:16px !important; min-height:110px !important;
-                font-size:0.95rem !important; font-weight:bold !important;
-                white-space:pre-wrap !important; line-height:1.6 !important;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-            if st.button(
-                T("weak_btn"),
-                key="extra_weak", use_container_width=True
-            ):
-                cards = load_flashcards_by_set(selected_set_id)
+            if st.button(T("weak_btn"), key="extra_weak", use_container_width=True):
+                cards_all = load_flashcards_by_set(selected_set_id)
                 logs = load_review_logs(username)
                 latest = {}
                 for row in logs:
                     cid = row["flashcard_id"]
                     if cid not in latest or row["reviewed_at"] > latest[cid]["reviewed_at"]:
                         latest[cid] = row
-                weak_ids = {
-                    cid for cid, row in latest.items()
-                    if row.get("quality", 5) < 4
-                }
-                weak_cards = [c for c in cards if c["id"] in weak_ids]
+                weak_ids = {cid for cid, row in latest.items() if row.get("quality", 5) < 4}
+                weak_cards = [c for c in cards_all if c["id"] in weak_ids]
                 if weak_cards:
                     random.shuffle(weak_cards)
                     st.session_state["flash_queue"] = weak_cards
@@ -1046,16 +1044,12 @@ def show_home(username):
                     st.rerun()
                 else:
                     st.success(T("weak_ok"))
-
         with ex2:
-            if st.button(
-                T("new_btn"),
-                key="extra_new", use_container_width=True
-            ):
-                cards = load_flashcards_by_set(selected_set_id)
+            if st.button(T("new_btn"), key="extra_new", use_container_width=True):
+                cards_all = load_flashcards_by_set(selected_set_id)
                 logs = load_review_logs(username)
                 learned_ids = {row["flashcard_id"] for row in logs}
-                new_cards = [c for c in cards if c["id"] not in learned_ids]
+                new_cards = [c for c in cards_all if c["id"] not in learned_ids]
                 if new_cards:
                     random.shuffle(new_cards)
                     st.session_state["flash_queue"] = new_cards[:10]
@@ -1066,158 +1060,43 @@ def show_home(username):
                     st.rerun()
                 else:
                     st.success(T("new_ok"))
-
         with ex3:
-            if st.button(
-                T("all_btn"),
-                key="extra_all", use_container_width=True
-            ):
-                cards = load_flashcards_by_set(selected_set_id)
-                if cards:
-                    random.shuffle(cards)
-                    st.session_state["flash_queue"] = cards
+            if st.button(T("all_btn"), key="extra_all", use_container_width=True):
+                cards_all = load_flashcards_by_set(selected_set_id)
+                if cards_all:
+                    random.shuffle(cards_all)
+                    st.session_state["flash_queue"] = cards_all
                     st.session_state["flash_index"] = 0
                     st.session_state["flash_show_answer"] = False
                     st.session_state["flash_session_results"] = []
                     st.session_state["flash_mode"] = "study"
                     st.rerun()
 
-        # ボタン色をCSSで一括適用（キー名で特定）
-        st.markdown("""
-        <style>
-        /* 苦手だけ復習 → オレンジ */
-        [data-testid="stBaseButton-secondary"]:nth-of-type(1) {
-            background: #FF6B35 !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 18px !important;
-            min-height: 110px !important;
-            font-size: 0.95rem !important;
-            font-weight: bold !important;
-            white-space: pre-wrap !important;
-            line-height: 1.6 !important;
-            box-shadow: 0 6px 0 #CC4A1A !important;
-            transition: transform 0.1s, box-shadow 0.1s !important;
-        }
-        [data-testid="stBaseButton-secondary"]:nth-of-type(1):active {
-            transform: translateY(4px) !important;
-            box-shadow: 0 2px 0 #CC4A1A !important;
-        }
-
-        /* 先取りチャレンジ → ターコイズ */
-        [data-testid="stBaseButton-secondary"]:nth-of-type(2) {
-            background: #4ECDC4 !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 18px !important;
-            min-height: 110px !important;
-            font-size: 0.95rem !important;
-            font-weight: bold !important;
-            white-space: pre-wrap !important;
-            line-height: 1.6 !important;
-            box-shadow: 0 6px 0 #2BA89F !important;
-            transition: transform 0.1s, box-shadow 0.1s !important;
-        }
-        [data-testid="stBaseButton-secondary"]:nth-of-type(2):active {
-            transform: translateY(4px) !important;
-            box-shadow: 0 2px 0 #2BA89F !important;
-        }
-
-        /* 全部通し復習 → イエロー */
-        [data-testid="stBaseButton-secondary"]:nth-of-type(3) {
-            background: #FFD93D !important;
-            color: #333333 !important;
-            border: none !important;
-            border-radius: 18px !important;
-            min-height: 110px !important;
-            font-size: 0.95rem !important;
-            font-weight: bold !important;
-            white-space: pre-wrap !important;
-            line-height: 1.6 !important;
-            box-shadow: 0 6px 0 #CCA800 !important;
-            transition: transform 0.1s, box-shadow 0.1s !important;
-        }
-        [data-testid="stBaseButton-secondary"]:nth-of-type(3):active {
-            transform: translateY(4px) !important;
-            box-shadow: 0 2px 0 #CCA800 !important;
-        }
-
-        /* タイムアタック → マゼンタピンク */
-        [data-testid="stBaseButton-primary"] {
-            background: #FF3CAC !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 18px !important;
-            font-size: 1.1rem !important;
-            font-weight: bold !important;
-            white-space: pre-wrap !important;
-            line-height: 1.6 !important;
-            box-shadow: 0 6px 0 #CC1A85 !important;
-            transition: transform 0.1s, box-shadow 0.1s !important;
-            padding: 14px !important;
-        }
-        [data-testid="stBaseButton-primary"]:active {
-            transform: translateY(4px) !important;
-            box-shadow: 0 2px 0 #CC1A85 !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
         # タイムアタックボタン
-        st.markdown("---")
-        if st.button(
-            T("ta_btn"),
-            key="extra_ta", use_container_width=True, type="primary"
-        ):
-            cards = load_flashcards_by_set(selected_set_id)
-            if cards:
-                random.shuffle(cards)
-                st.session_state["flash_queue"] = cards[:10]
+        if st.button(T("ta_btn"), key="extra_ta", use_container_width=True):
+            cards_all = load_flashcards_by_set(selected_set_id)
+            if cards_all:
+                random.shuffle(cards_all)
+                st.session_state["flash_queue"] = cards_all[:10]
                 st.session_state["flash_index"] = 0
-                st.session_state["flash_show_answer"] = False
                 st.session_state["flash_time_scores"] = []
-                st.session_state["flash_timer_start"] = None
+                st.session_state["ta_choices"] = []
+                st.session_state["ta_answered"] = False
+                st.session_state["ta_correct"] = None
+                st.session_state["ta_selected_idx"] = -1
                 st.session_state["flash_mode"] = "time_attack"
                 st.rerun()
 
-        # デイリーミッション（簡易版）
-        st.markdown("---")
+        # ストリーク情報
         streak = compute_learning_streak(username)
         if streak >= 7:
-            st.markdown(
-                f"""
-            <div style="background:linear-gradient(135deg,#f7971e,#ffd200);
-                border-radius:14px; padding:12px 16px; color:#333;
-                font-weight:bold; text-align:center;">
-                {T("daily_7")}
-            </div>
-            """,
-                unsafe_allow_html=True,
-            )
+            st.success(T("daily_7"))
         elif streak >= 3:
-            st.info(
-                T("daily_3").format(s=streak, r=7 - streak)
-            )
+            st.info(T("daily_3").format(s=streak, r=7 - streak))
         else:
-            st.caption(T("daily_0"))
-    else:
-        if st.button(T("start_study"), type="primary", use_container_width=True):
-            queue = load_due_cards(username, selected_set_id)
-            st.session_state["flash_queue"] = queue
-            st.session_state["flash_index"] = 0
-            st.session_state["flash_show_answer"] = False
-            st.session_state["flash_session_results"] = []
-            st.session_state["flash_mode"] = "study"
-            st.rerun()
+            st.info(T("daily_0"))
 
-    st.markdown("---")
-    if st.button(T("logout")):
-        st.session_state["flash_user"] = ""
-        st.rerun()
 
-# ─────────────────────────────
-# 学習画面
-# ─────────────────────────────
 def show_study(username):
     queue = st.session_state["flash_queue"]
     idx = st.session_state["flash_index"]
