@@ -1554,21 +1554,24 @@ def load_cumulative_xp(username):
 
 
 def generate_choices(correct_card, all_cards, n=4):
-    """
-    correct_card の意味を正解として、
-    all_cards から重複なしでダミー3択を生成して返す。
-    戻り値: list[str] シャッフル済み4択（意味のリスト）
-    """
     import random
-
-    correct_meaning = correct_card["meaning"]
-    # 正解以外のカードからダミーを抽出
-    others = [
-        c["meaning"] for c in all_cards
-        if c["id"] != correct_card["id"]
-        and c["meaning"] != correct_meaning
-    ]
-    # ダミーが3つ未満の場合は補完用の固定ダミーを使う
+    category = str(correct_card.get("category", ""))
+    if "みんなの日本語" in category:
+        # 問題は中国語(meaning)、正解は日本語(word)
+        correct_answer = correct_card["word"]
+        others = [
+            c["word"] for c in all_cards
+            if c["id"] != correct_card["id"]
+            and c["word"] != correct_answer
+        ]
+    else:
+        # 問題は英語(word)、正解は日本語訳(meaning)
+        correct_answer = correct_card["meaning"]
+        others = [
+            c["meaning"] for c in all_cards
+            if c["id"] != correct_card["id"]
+            and c["meaning"] != correct_answer
+        ]
     fallback = ["わからない", "べつのことば", "ちがうもの",
                 "またべつのもの", "なにかのこと"]
     while len(others) < 3:
@@ -1576,7 +1579,7 @@ def generate_choices(correct_card, all_cards, n=4):
         if fb not in others:
             others.append(fb)
     dummy = random.sample(others, 3)
-    choices = dummy + [correct_meaning]
+    choices = dummy + [correct_answer]
     random.shuffle(choices)
     return choices
 
@@ -1803,7 +1806,11 @@ def show_time_attack(username):
         st.session_state["ta_choices"] = generate_choices(card, all_cards)
 
     choices = st.session_state["ta_choices"]
-    correct_meaning = card["meaning"]
+    category = str(card.get("category", ""))
+    if "みんなの日本語" in category:
+        correct_meaning = card["word"]   # 日本語が正解
+    else:
+        correct_meaning = card["meaning"]  # 日本語訳が正解
 
     st.markdown("---")
     st.markdown(
