@@ -484,45 +484,89 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             st.session_state["flash_mode"] = "home"
             st.rerun()
 
-    reading = card.get("reading", "")
-    reading_html = (
-        f'<div class="card-reading">読み：{reading}</div>' if reading else ""
-    )
+    category = card.get("category", "")
+    is_japanese = category in ["JLPT", "日本語", "国語"]
 
     if not st.session_state["flash_show_answer"]:
-        st.markdown(f"""
+        if is_japanese:
+            reading = card.get("reading", "")
+            reading_html = (
+                f'<div class="card-reading">読み：{reading}</div>'
+                if reading
+                else ""
+            )
+            st.markdown(
+                f"""
 <div class="card-front">
     <div class="card-word">{card['word']}</div>
     {reading_html}
 </div>
-""", unsafe_allow_html=True)
+""",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                f"""
+<div class="card-front">
+    <div class="card-word">{card['word']}</div>
+    <div class="card-reading" style="opacity:0.5; font-size:0.9rem;">
+        👆 意味を思い浮かべてみよう
+    </div>
+</div>
+""",
+                unsafe_allow_html=True,
+            )
 
         st.markdown(
-            "#### 💭 意味を思い浮かべてから「答えを見る」を押そう！"
+            "<div style='text-align:center; color:#888; "
+            "font-size:0.9rem; margin:8px 0;'>"
+            "💭 意味を頭に思い浮かべてから押してね</div>",
+            unsafe_allow_html=True,
         )
-
         if st.button("👀 答えを見る", type="primary", use_container_width=True):
             st.session_state["flash_show_answer"] = True
             st.rerun()
     else:
-        st.markdown(f"""
-<div class="card-front">
-    <div class="card-word">{card['word']}</div>
-    {reading_html}
-</div>
-""", unsafe_allow_html=True)
-
-        example = card.get("example", "")
-        example_html = (
-            f'<div class="card-example">📝 例文: {example}</div>' if example else ""
-        )
-
-        st.markdown(f"""
+        if is_japanese:
+            example = card.get("example", "")
+            example_html = (
+                f'<div class="card-example">📝 例文: {example}</div>'
+                if example
+                else ""
+            )
+            st.markdown(
+                f"""
 <div class="card-back">
     <div class="card-meaning">💡 {card['meaning']}</div>
     {example_html}
 </div>
-""", unsafe_allow_html=True)
+""",
+                unsafe_allow_html=True,
+            )
+        else:
+            reading = card.get("reading", "")
+            reading_html = (
+                f'<div style="font-size:1rem; color:#667eea; margin-top:8px;">'
+                f"🔊 読み：{reading}</div>"
+            ) if reading else ""
+
+            example = card.get("example", "")
+            example_html = (
+                f'<div class="card-example">📝 例文: {example}</div>'
+                if example
+                else ""
+            )
+
+            st.markdown(
+                f"""
+<div class="card-back">
+    <div class="card-meaning">💡 {card['meaning']}</div>
+    {reading_html}
+    {example_html}
+</div>
+""",
+                unsafe_allow_html=True,
+            )
 
         def record_quality(q):
             logs = load_review_logs(username)
