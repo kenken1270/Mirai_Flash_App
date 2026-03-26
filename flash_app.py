@@ -905,8 +905,8 @@ def show_home(username):
             unsafe_allow_html=True,
         )
 
-        # ── 基本ペース変更（折りたたみ） ──
-        with st.expander("📋 基本ペースを変更する（学習計画の設定）"):
+        # ── 基本ペース変更 ──
+        with st.expander("📋 基本ペースを変更する（学習計画の設定）", expanded=False):
             st.caption("先生と相談して決めた1日の目標枚数です。変更は慎重に！")
             new_base = st.select_slider(
                 "1日の基本枚数",
@@ -916,20 +916,18 @@ def show_home(username):
             )
             col_base1, col_base2 = st.columns([2, 1])
             with col_base1:
-                st.caption("📌 目安: 初めて5枚 / 標準10枚 / 試験前20〜30枚")
+                st.caption("目安: 初めて5枚 / 標準10枚 / 試験前20〜30枚")
             with col_base2:
-                if st.button("✅ 基本ペースを保存", key="save_base"):
+                if st.button("保存する", key="save_base"):
                     if save_base_limit(username, new_base):
                         st.success(f"基本ペースを {new_base}枚 に設定しました！")
                         st.rerun()
 
-        # ── 今日だけ調整（折りたたみ） ──
-        with st.expander("⚡ 今日だけ枚数を調整する"):
+        # ── 今日だけ調整 ──
+        with st.expander("今日だけ枚数を調整する", expanded=False):
             st.caption("今日だけ増やしたり減らしたりできます。翌日は基本ペースに自動で戻ります。")
             adj_options = [3, 5, 10, 15, 20, 25, 30]
-            adj_default = today if today in adj_options else eff
-            if adj_default not in adj_options:
-                adj_default = adj_options[0]
+            adj_default = today if (today is not None and today in adj_options) else (eff if eff in adj_options else 10)
             new_today = st.select_slider(
                 "今日の枚数",
                 options=adj_options,
@@ -939,13 +937,13 @@ def show_home(username):
             col_t1, col_t2 = st.columns([2, 1])
             with col_t1:
                 if new_today < base:
-                    st.caption(f"⚠️ 基本より {base - new_today}枚 少なめ")
+                    st.caption(f"基本より {base - new_today}枚 少なめ")
                 elif new_today > base:
-                    st.caption(f"🔥 基本より {new_today - base}枚 多め！")
+                    st.caption(f"基本より {new_today - base}枚 多め！")
                 else:
-                    st.caption("👍 基本ペース通り")
+                    st.caption("基本ペース通り")
             with col_t2:
-                if st.button("⚡ 今日はこの枚数で！", key="save_today"):
+                if st.button("今日はこれで！", key="save_today"):
                     if save_today_limit(username, new_today):
                         st.success(f"今日は {new_today}枚 で学習します！")
                         st.rerun()
