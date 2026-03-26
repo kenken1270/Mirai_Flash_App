@@ -323,7 +323,7 @@ def show_home(username):
         st.rerun()
 
 # ─────────────────────────────
-# 学習画面（変更なし）
+# 学習画面
 # ─────────────────────────────
 def show_study(username):
     queue = st.session_state["flash_queue"]
@@ -336,23 +336,110 @@ def show_study(username):
     card = queue[idx]
     total = len(queue)
 
-    st.progress(idx / total, text=f"{idx + 1} / {total} 枚目")
-    st.markdown("---")
-    st.markdown(f"## 🔤 {card['word']}")
-    if card.get("reading"):
-        st.caption(f"読み：{card['reading']}")
+    st.markdown("""
+<style>
+.card-front {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 40px 24px;
+    text-align: center;
+    color: white;
+    margin: 16px 0;
+    box-shadow: 0 8px 24px rgba(102,126,234,0.4);
+}
+.card-word {
+    font-size: 2.4rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+.card-reading {
+    font-size: 1.1rem;
+    opacity: 0.85;
+}
+.card-back {
+    background: white;
+    border: 3px solid #667eea;
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    margin: 16px 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.card-meaning {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 12px;
+}
+.card-example {
+    font-size: 1rem;
+    color: #666;
+    font-style: italic;
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+    margin-top: 12px;
+}
+.progress-bar-label {
+    font-size: 0.9rem;
+    color: #888;
+    text-align: right;
+    margin-bottom: 4px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+    col_prog, col_home = st.columns([4, 1])
+    with col_prog:
+        st.markdown(
+            f'<div class="progress-bar-label">{idx + 1} / {total} 枚目</div>',
+            unsafe_allow_html=True,
+        )
+        st.progress(idx / total)
+    with col_home:
+        if st.button("🏠", help="ホームへ戻る", use_container_width=True):
+            st.session_state["flash_mode"] = "home"
+            st.rerun()
+
+    reading = card.get("reading", "")
+    reading_html = (
+        f'<div class="card-reading">読み：{reading}</div>' if reading else ""
+    )
 
     if not st.session_state["flash_show_answer"]:
-        if st.button("✅ 意味を見る", type="primary", use_container_width=True):
+        st.markdown(f"""
+<div class="card-front">
+    <div class="card-word">{card['word']}</div>
+    {reading_html}
+</div>
+""", unsafe_allow_html=True)
+
+        st.markdown(
+            "#### 💭 意味を思い浮かべてから「答えを見る」を押そう！"
+        )
+
+        if st.button("👀 答えを見る", type="primary", use_container_width=True):
             st.session_state["flash_show_answer"] = True
             st.rerun()
     else:
-        st.markdown(f"### 💡 {card['meaning']}")
-        if card.get("example"):
-            st.info(f"例文: {card['example']}")
+        st.markdown(f"""
+<div class="card-front">
+    <div class="card-word">{card['word']}</div>
+    {reading_html}
+</div>
+""", unsafe_allow_html=True)
 
-        st.markdown("**どのくらい覚えていましたか？**")
-        col1, col2, col3, col4 = st.columns(4)
+        example = card.get("example", "")
+        example_html = (
+            f'<div class="card-example">📝 例文: {example}</div>' if example else ""
+        )
+
+        st.markdown(f"""
+<div class="card-back">
+    <div class="card-meaning">💡 {card['meaning']}</div>
+    {example_html}
+</div>
+""", unsafe_allow_html=True)
 
         def record_quality(q):
             logs = load_review_logs(username)
@@ -378,18 +465,49 @@ def show_study(username):
             st.session_state["flash_show_answer"] = False
             st.rerun()
 
+        st.markdown("---")
+        st.markdown("### ✅ どのくらい覚えていた？")
+        st.markdown("**思い出せた速さ・自信で選んでね**")
+
+        col1, col2 = st.columns(2)
+        col3, col4 = st.columns(2)
+
         with col1:
-            if st.button("😰\n全然\nわからない", use_container_width=True):
+            st.markdown("**😰 全然ダメ**")
+            st.caption(
+                "まったく思い出せなかった\n・頭が真っ白だった\n・見ても「あ、そうか」程度"
+            )
+            if st.button("😰 全然ダメ", use_container_width=True, key="q0"):
                 record_quality(0)
+
         with col2:
-            if st.button("🤔\nなんとなく\nわかった", use_container_width=True):
+            st.markdown("**🤔 うっすら覚えてた**")
+            st.caption(
+                "なんとなく思い出せたが\n・時間がかかった\n・自信がなかった"
+            )
+            if st.button("🤔 うっすら", use_container_width=True, key="q3"):
                 record_quality(3)
+
         with col3:
-            if st.button("😊\nだいたい\nわかった", use_container_width=True):
+            st.markdown("**😊 だいたい言えた**")
+            st.caption(
+                "だいたい正しく答えられた\n・少し迷ったが言えた\n・意味はわかった"
+            )
+            if st.button("😊 だいたい", use_container_width=True, key="q4"):
                 record_quality(4)
+
         with col4:
-            if st.button("🎯\nバッチリ\nわかった！", use_container_width=True):
+            st.markdown("**🎯 すぐ言えた！**")
+            st.caption(
+                "迷わず即答できた\n・自信を持って答えられた\n・完璧にわかった"
+            )
+            if st.button("🎯 バッチリ！", use_container_width=True, key="q5"):
                 record_quality(5)
+
+        st.markdown("---")
+        if st.button("⏸️ いったん中断してホームへ戻る", use_container_width=True):
+            st.session_state["flash_mode"] = "home"
+            st.rerun()
 
 # ─────────────────────────────
 # 結果画面（変更なし）
