@@ -281,35 +281,85 @@ def T(key):
 
 st.set_page_config(page_title="📖 単語暗記 | 未来塾", layout="centered")
 
-# ── グローバルフォント設定 ──────────────────────
+# ── グローバルフォント設定（<head>直接注入）────────────
 st.markdown("""
-<style>
-/* Google Fonts: Noto Sans JP（日本語）+ Noto Sans SC（簡体字中国語）+ Noto Sans（英語） */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans:wght@400;700&display=swap');
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-/* アプリ全体に適用 */
-html, body, [class*="css"], .stMarkdown, .stText,
-.stButton > button, .stSelectbox, .stTextInput > div > input,
-.stCaption, .stSuccess, .stInfo, .stWarning, .stError {
+<style>
+/* ========================================
+   全要素に対して Noto Sans 系を適用
+   優先順位: 英語 → 日本語 → 中国語
+   ブラウザが文字コードを見て自動選択する
+   ======================================== */
+
+/* リセット: Streamlit のデフォルトフォントを上書き */
+*, *::before, *::after {
     font-family:
+        'Noto Sans',
         'Noto Sans JP',
         'Noto Sans SC',
-        'Noto Sans',
         sans-serif !important;
 }
 
-/* カード表示（render_card_front / render_card_back） */
-.card-word {
-    font-family: 'Noto Sans', 'Noto Sans JP', 'Noto Sans SC', sans-serif !important;
-    font-weight: 700;
-}
-.card-meaning, .card-reading, .card-example {
-    font-family: 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans', sans-serif !important;
+/* Streamlit フレームワーク内部コンポーネント */
+html, body,
+.main, .block-container,
+[data-testid="stAppViewContainer"],
+[data-testid="stHeader"],
+[data-testid="stSidebar"],
+[data-testid="stMarkdownContainer"],
+[data-testid="stText"],
+[data-testid="stCaption"],
+[data-testid="stAlert"],
+[data-testid="stForm"],
+[data-testid="stSelectbox"],
+[data-testid="stTextInput"],
+[data-testid="stBaseButton-primary"],
+[data-testid="stBaseButton-secondary"],
+.stMarkdown, .stText, .stCaption,
+.stButton > button,
+.stSelectbox > div,
+.stTextInput > div > input,
+div[role="listbox"],
+div[role="option"] {
+    font-family:
+        'Noto Sans',
+        'Noto Sans JP',
+        'Noto Sans SC',
+        sans-serif !important;
 }
 
-/* タイムアタック・ランキング結果 */
-.stMarkdown p, .stMarkdown div, .stMarkdown span {
-    font-family: 'Noto Sans JP', 'Noto Sans SC', 'Noto Sans', sans-serif !important;
+/* カスタムHTMLカード（render_card_front / render_card_back） */
+.card-front, .card-back,
+.card-word, .card-reading,
+.card-meaning, .card-example {
+    font-family:
+        'Noto Sans',
+        'Noto Sans JP',
+        'Noto Sans SC',
+        sans-serif !important;
+}
+
+/* インラインstyle属性で書かれたdiv（称号・バッジ・グラフキャプションなど） */
+div[style], span[style], p[style] {
+    font-family:
+        'Noto Sans',
+        'Noto Sans JP',
+        'Noto Sans SC',
+        sans-serif !important;
+}
+
+/* Plotly グラフ内テキスト（グラフは SVG なので別途対応） */
+.js-plotly-plot .plotly text,
+.js-plotly-plot .plotly .xtick text,
+.js-plotly-plot .plotly .ytick text {
+    font-family:
+        'Noto Sans',
+        'Noto Sans JP',
+        'Noto Sans SC',
+        sans-serif !important;
 }
 </style>
 """, unsafe_allow_html=True)
