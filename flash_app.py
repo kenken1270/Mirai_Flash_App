@@ -855,62 +855,68 @@ def show_home(username):
         today = plan["today"]
         eff = plan["effective"]
 
-        # 表示ラベル生成
-        if today is not None and today != base:
-            pace_label = f"📅 基本: {base}枚 ／ 今日の調整: {today}枚"
-            pace_color = "#e06c00"
-        else:
-            pace_label = f"📅 1日の学習ペース: {base}枚"
-            pace_color = "#555"
-
         st.markdown(
-            f"<div style='font-size:0.9rem; color:{pace_color}; "
-            f"margin-bottom:4px;'>{pace_label}</div>",
+            f"<div style='font-size:0.9rem; color:#555; margin-bottom:8px;'>"
+            f"📅 1日の学習ペース: <b>{eff}枚</b>"
+            + (f"　（基本: {base}枚 / 今日の調整: {today}枚）" if today is not None and today != base else "")
+            + "</div>",
             unsafe_allow_html=True,
         )
 
-        # ── 基本ペース変更 ──
-        with st.expander("📋 基本ペースを変更する（学習計画の設定）", expanded=False):
-            st.caption("先生と相談して決めた1日の目標枚数です。変更は慎重に！")
-            new_base = st.select_slider(
-                "1日の基本枚数",
-                options=[5, 10, 15, 20, 25, 30],
-                value=base if base in [5, 10, 15, 20, 25, 30] else 10,
-                key="base_slider",
-            )
-            col_base1, col_base2 = st.columns([2, 1])
-            with col_base1:
-                st.caption("目安: 初めて5枚 / 標準10枚 / 試験前20〜30枚")
-            with col_base2:
-                if st.button("保存する", key="save_base"):
-                    if save_base_limit(username, new_base):
-                        st.success(f"基本ペースを {new_base}枚 に設定しました！")
-                        st.rerun()
+        # 基本ペース・今日の調整をラジオボタンで選択
+        pace_options = [3, 5, 10, 15, 20, 25, 30]
 
-        # ── 今日だけ調整 ──
-        with st.expander("今日だけ枚数を調整する", expanded=False):
-            st.caption("今日だけ増やしたり減らしたりできます。翌日は基本ペースに自動で戻ります。")
-            adj_options = [3, 5, 10, 15, 20, 25, 30]
-            adj_default = today if (today is not None and today in adj_options) else (eff if eff in adj_options else 10)
-            new_today = st.select_slider(
-                "今日の枚数",
-                options=adj_options,
-                value=adj_default,
-                key="today_slider",
+        pace_mode = st.radio(
+            "設定モードを選ぶ",
+            options=["📋 基本ペースを変更する", "⚡ 今日だけ調整する"],
+            horizontal=True,
+            key="pace_mode_radio",
+            label_visibility="collapsed",
+        )
+
+        if pace_mode == "📋 基本ペースを変更する":
+            st.caption("先生と相談して決めた1日の目標枚数です。")
+            new_base = st.radio(
+                "1日の基本枚数を選ぶ",
+                options=pace_options,
+                index=pace_options.index(base) if base in pace_options else 1,
+                horizontal=True,
+                key="base_radio",
+                format_func=lambda x: f"{x}枚",
             )
-            col_t1, col_t2 = st.columns([2, 1])
-            with col_t1:
-                if new_today < base:
-                    st.caption(f"基本より {base - new_today}枚 少なめ")
-                elif new_today > base:
-                    st.caption(f"基本より {new_today - base}枚 多め！")
-                else:
-                    st.caption("基本ペース通り")
-            with col_t2:
-                if st.button("今日はこれで！", key="save_today"):
-                    if save_today_limit(username, new_today):
-                        st.success(f"今日は {new_today}枚 で学習します！")
-                        st.rerun()
+            if base in pace_options:
+                st.caption(
+                    "目安: 3〜5枚=初めて / 10枚=標準 / 20枚以上=試験前"
+                )
+            if st.button("✅ 基本ペースを保存", key="save_base"):
+                if save_base_limit(username, new_base):
+                    st.success(f"基本ペースを {new_base}枚 に設定しました！")
+                    st.rerun()
+
+        else:  # 今日だけ調整
+            st.caption("今日だけ変更できます。翌日は基本ペースに自動で戻ります。")
+            adj_default = today if (today is not None and today in pace_options) else eff
+            if adj_default not in pace_options:
+                adj_default = 10
+            new_today = st.radio(
+                "今日の枚数を選ぶ",
+                options=pace_options,
+                index=pace_options.index(adj_default),
+                horizontal=True,
+                key="today_radio",
+                format_func=lambda x: f"{x}枚",
+            )
+            diff = new_today - base
+            if diff < 0:
+                st.caption(f"基本より {abs(diff)}枚 少なめ")
+            elif diff > 0:
+                st.caption(f"基本より {diff}枚 多め！🔥")
+            else:
+                st.caption("基本ペース通り 👍")
+            if st.button("⚡ 今日はこの枚数で！", key="save_today"):
+                if save_today_limit(username, new_today):
+                    st.success(f"今日は {new_today}枚 で学習します！")
+                    st.rerun()
 
     st.markdown("---")
 
