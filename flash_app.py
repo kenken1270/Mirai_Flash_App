@@ -529,7 +529,10 @@ def load_flashcard_sets():
 def load_flashcards_by_set(set_id):
     try:
         sb = get_supabase()
-        res = sb.table("flashcards").select("*").eq("set_id", set_id).execute()
+        res = sb.table("flashcards").select(
+            "id, word, reading, phonetic, meaning, meaning_zh, "
+            "example, category, grade, set_id, item_no, page_range, username"
+        ).eq("set_id", set_id).execute()
         return res.data if res.data else []
     except:
         return []
@@ -631,6 +634,7 @@ def load_due_cards(username: str, set_id: int) -> list:
 
 def render_card_front(card: dict, lang: str = "ja"):
     category = str(card.get("category", ""))
+    st.caption(f"[DEBUG] category='{category}'")
 
     if "みんなの日本語" in category:
         meaning = card.get("meaning", "")
