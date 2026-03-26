@@ -634,7 +634,6 @@ def load_due_cards(username: str, set_id: int) -> list:
 
 def render_card_front(card: dict, lang: str = "ja"):
     category = str(card.get("category", ""))
-    st.caption(f"[DEBUG] category='{category}'")
 
     if "みんなの日本語" in category:
         meaning = card.get("meaning", "")
