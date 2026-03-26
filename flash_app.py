@@ -217,6 +217,10 @@ for key, default in [
     ("selected_set_id", None),
     ("flash_timer_start", None),
     ("flash_time_scores", []),
+    ("ta_choices", []),
+    ("ta_answered", False),
+    ("ta_correct", None),
+    ("ta_selected_idx", -1),
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
@@ -1093,6 +1097,34 @@ def load_cumulative_xp(username):
 # );
 
 
+def generate_choices(correct_card, all_cards, n=4):
+    """
+    correct_card の意味を正解として、
+    all_cards から重複なしでダミー3択を生成して返す。
+    戻り値: list[str] シャッフル済み4択（意味のリスト）
+    """
+    import random
+
+    correct_meaning = correct_card["meaning"]
+    # 正解以外のカードからダミーを抽出
+    others = [
+        c["meaning"] for c in all_cards
+        if c["id"] != correct_card["id"]
+        and c["meaning"] != correct_meaning
+    ]
+    # ダミーが3つ未満の場合は補完用の固定ダミーを使う
+    fallback = ["わからない", "べつのことば", "ちがうもの",
+                "またべつのもの", "なにかのこと"]
+    while len(others) < 3:
+        fb = fallback.pop(0)
+        if fb not in others:
+            others.append(fb)
+    dummy = random.sample(others, 3)
+    choices = dummy + [correct_meaning]
+    random.shuffle(choices)
+    return choices
+
+
 def _record_ta_quality(username, card, quality):
     logs = load_review_logs(username)
     cid = card["id"]
@@ -1159,118 +1191,206 @@ def show_time_attack(username):
     card = queue[idx]
     total = len(queue)
 
-    # CSS
+    # ── CSS ──────────────────────────────────
     st.markdown("""
     <style>
-    .timer-display {
-        font-size: 3rem; font-weight: bold;
-        text-align: center; color: #ff4b4b;
-        font-family: monospace;
-        text-shadow: 0 0 10px rgba(255,75,75,0.4);
-    }
-    .ta-card {
+    .ta-card-dark {
         background: linear-gradient(135deg,#1a1a2e,#16213e);
-        border-radius: 20px; padding: 40px 24px;
+        border-radius: 20px; padding: 36px 24px;
         text-align: center; color: white; margin: 12px 0;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
     .ta-word {
         font-size: 2.8rem; font-weight: bold;
-        letter-spacing: 3px;
+        letter-spacing: 3px; margin-bottom: 8px;
+    }
+    .ta-timer {
+        font-size: 2.8rem; font-weight: bold;
+        text-align: center; font-family: monospace;
+    }
+    /* 4択ボタン 未回答時 */
+    div[data-testid="stHorizontalBlock"]
+        button[kind="secondary"] {
+        background: white !important;
+        color: #333 !important;
+        border: 2px solid #ddd !important;
+        border-radius: 16px !important;
+        min-height: 80px !important;
+        font-size: 1rem !important;
+        font-weight: bold !important;
+        white-space: pre-wrap !important;
+        transition: all 0.15s !important;
+        box-shadow: 0 4px 0 #ccc !important;
+    }
+    div[data-testid="stHorizontalBlock"]
+        button[kind="secondary"]:hover {
+        border-color: #667eea !important;
+        box-shadow: 0 4px 0 #667eea !important;
+        transform: translateY(-2px) !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # ヘッダー
+    # ── ヘッダー ──────────────────────────────
     col_p, col_h = st.columns([4, 1])
     with col_p:
-        st.markdown(f'<div style="font-size:0.9rem;color:#888;">'
-                    f'⚡ タイムアタック {idx+1}/{total}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="font-size:0.9rem;color:#888;">'
+            f'⚡ タイムアタック {idx+1}/{total}</div>',
+            unsafe_allow_html=True
+        )
         st.progress(idx / total)
     with col_h:
-        if st.button("🏠", key="ta_home"):
+        if st.button("🏠", key="ta_home", help="ホームへ戻る"):
             st.session_state["flash_mode"] = "home"
+            st.session_state["ta_choices"] = []
+            st.session_state["ta_answered"] = False
+            st.session_state["ta_correct"] = None
+            st.session_state["ta_selected_idx"] = -1
+            st.session_state["flash_timer_start"] = None
             st.rerun()
 
-    # タイマー開始
+    # ── タイマー管理 ─────────────────────────
     if st.session_state["flash_timer_start"] is None:
         st.session_state["flash_timer_start"] = time.time()
 
     elapsed = time.time() - st.session_state["flash_timer_start"]
-    remaining = max(0, 10 - elapsed)  # 10秒制限
+    limit = 10  # 秒
+    remaining = max(0.0, limit - elapsed)
 
-    # カード表示
+    # タイマーの色を残り時間で変える
+    if remaining > 6:
+        timer_color = "#00b09b"   # 緑
+    elif remaining > 3:
+        timer_color = "#ffa500"   # オレンジ
+    else:
+        timer_color = "#ff4b4b"   # 赤
+
+    # ── カード表示 ───────────────────────────
     st.markdown(f"""
-    <div class="ta-card">
-        <div style="font-size:0.9rem; opacity:0.6; margin-bottom:8px;">
-            ⚡ 意味を言えたら「わかった」を押そう！
+    <div class="ta-card-dark">
+        <div style="font-size:0.85rem; opacity:0.6; margin-bottom:6px;">
+            💭 正しい意味はどれ？
         </div>
         <div class="ta-word">{card['word']}</div>
+        <div style="font-size:0.9rem; opacity:0.55;">
+            読み: {card.get('reading', '―')}
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # タイマー表示
+    # ── タイマー表示 ─────────────────────────
+    if not st.session_state["ta_answered"]:
+        st.markdown(
+            f'<div class="ta-timer" style="color:{timer_color};">'
+            f'⏱ {remaining:.1f}秒</div>',
+            unsafe_allow_html=True
+        )
+    else:
+        # 回答済みは結果カラーで固定表示
+        result_color = "#00b09b" if st.session_state["ta_correct"] else "#ff4b4b"
+        result_text = "✅ 正解！" if st.session_state["ta_correct"] else "❌ 不正解"
+        st.markdown(
+            f'<div class="ta-timer" style="color:{result_color};">'
+            f'{result_text}</div>',
+            unsafe_allow_html=True
+        )
+
+    # ── 4択ボタン生成 ────────────────────────
+    # 選択肢がない or 新しいカードの場合のみ生成
+    if not st.session_state["ta_choices"]:
+        all_cards = load_flashcards_by_set(
+            st.session_state.get("selected_set_id")
+        )
+        st.session_state["ta_choices"] = generate_choices(card, all_cards)
+
+    choices = st.session_state["ta_choices"]
+    correct_meaning = card["meaning"]
+
+    st.markdown("---")
     st.markdown(
-        f'<div class="timer-display">{remaining:.1f}秒</div>',
+        "<div style='text-align:center; font-size:0.9rem;"
+        "color:#888; margin-bottom:8px;'>👇 正しい意味をタップ！</div>",
         unsafe_allow_html=True
     )
 
-    if not st.session_state["flash_show_answer"]:
-        col_ok, col_ng = st.columns(2)
-        with col_ok:
-            if st.button("✅ わかった！", type="primary",
-                         use_container_width=True, key="ta_ok"):
-                score = max(0, int(remaining * 10))  # 残り時間×10点
-                st.session_state["flash_time_scores"].append({
-                    "word": card["word"],
-                    "meaning": card["meaning"],
-                    "time": round(10 - remaining, 1),
-                    "score": score,
-                    "result": "correct",
-                })
-                # SM-2に記録（バッチリ扱い）
-                _record_ta_quality(username, card, 5)
-                st.session_state["flash_index"] += 1
-                st.session_state["flash_timer_start"] = None
-                st.rerun()
-        with col_ng:
-            if st.button("❌ わからない", use_container_width=True,
-                         key="ta_ng"):
-                st.session_state["flash_show_answer"] = True
-                st.session_state["flash_time_scores"].append({
-                    "word": card["word"],
-                    "meaning": card["meaning"],
-                    "time": round(10 - remaining, 1),
-                    "score": 0,
-                    "result": "wrong",
-                })
-                _record_ta_quality(username, card, 0)
-                st.rerun()
-    else:
-        # 答え表示
-        st.markdown(f"""
-        <div style="background:white; border:3px solid #667eea;
-            border-radius:16px; padding:24px; text-align:center;
-            margin:12px 0;">
-            <div style="font-size:1.6rem; font-weight:bold; color:#333;">
-                💡 {card['meaning']}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("➡️ 次へ", type="primary",
-                     use_container_width=True, key="ta_next"):
-            st.session_state["flash_index"] += 1
-            st.session_state["flash_show_answer"] = False
-            st.session_state["flash_timer_start"] = None
-            st.rerun()
+    # 2×2 グリッドで4択表示
+    row1 = st.columns(2)
+    row2 = st.columns(2)
+    grid = [row1[0], row1[1], row2[0], row2[1]]
 
-    # タイムオーバー処理
-    if remaining <= 0 and not st.session_state["flash_show_answer"]:
-        st.session_state["flash_show_answer"] = True
+    answered = st.session_state["ta_answered"]
+
+    for i, (col, choice) in enumerate(zip(grid, choices)):
+        with col:
+            # 回答後の色分け
+            if answered:
+                if choice == correct_meaning:
+                    # 正解選択肢 → 緑ハイライト
+                    st.markdown(f"""
+                    <div style="background:#00b09b; color:white;
+                        border-radius:16px; padding:18px 8px;
+                        text-align:center; font-weight:bold;
+                        font-size:1rem; min-height:80px;
+                        display:flex; align-items:center;
+                        justify-content:center;">
+                        ✅ {choice}
+                    </div>
+                    """, unsafe_allow_html=True)
+                elif (not st.session_state["ta_correct"]
+                      and i == st.session_state.get("ta_selected_idx")):
+                    # 自分が選んだ不正解 → 赤ハイライト
+                    st.markdown(f"""
+                    <div style="background:#ff4b4b; color:white;
+                        border-radius:16px; padding:18px 8px;
+                        text-align:center; font-weight:bold;
+                        font-size:1rem; min-height:80px;
+                        display:flex; align-items:center;
+                        justify-content:center;">
+                        ❌ {choice}
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    # その他 → グレー
+                    st.markdown(f"""
+                    <div style="background:#f0f0f0; color:#aaa;
+                        border-radius:16px; padding:18px 8px;
+                        text-align:center; font-size:1rem;
+                        min-height:80px; display:flex;
+                        align-items:center; justify-content:center;">
+                        {choice}
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                # 未回答 → 押せるボタン
+                if st.button(choice, key=f"ta_choice_{i}",
+                             use_container_width=True, type="secondary"):
+                    is_correct = (choice == correct_meaning)
+                    st.session_state["ta_answered"] = True
+                    st.session_state["ta_correct"] = is_correct
+                    st.session_state["ta_selected_idx"] = i
+                    score = max(0, int(remaining * 10)) if is_correct else 0
+                    st.session_state["flash_time_scores"].append({
+                        "word": card["word"],
+                        "meaning": correct_meaning,
+                        "chosen": choice,
+                        "time": round(elapsed, 1),
+                        "score": score,
+                        "result": "correct" if is_correct else "wrong",
+                    })
+                    quality = 5 if is_correct else 0
+                    _record_ta_quality(username, card, quality)
+                    st.rerun()
+
+    # ── タイムオーバー処理 ───────────────────
+    if remaining <= 0 and not answered:
+        st.session_state["ta_answered"] = True
+        st.session_state["ta_correct"] = False
+        st.session_state["ta_selected_idx"] = -1
         st.session_state["flash_time_scores"].append({
             "word": card["word"],
-            "meaning": card["meaning"],
+            "meaning": correct_meaning,
+            "chosen": "（時間切れ）",
             "time": 10.0,
             "score": 0,
             "result": "timeout",
@@ -1278,8 +1398,26 @@ def show_time_attack(username):
         _record_ta_quality(username, card, 0)
         st.rerun()
 
-    # 自動更新（0.5秒ごと）— タイマー進行中かつ表面表示中のみ
-    if remaining > 0 and not st.session_state["flash_show_answer"]:
+    # ── 回答済み → 次へボタン ────────────────
+    if answered:
+        st.markdown(
+            f"<div style='text-align:center; font-size:0.9rem;"
+            f"color:#666; margin:8px 0;'>"
+            f"正解: <b>{correct_meaning}</b></div>",
+            unsafe_allow_html=True
+        )
+        if st.button("➡️ 次の問題へ", type="primary",
+                     use_container_width=True, key="ta_next"):
+            st.session_state["flash_index"] += 1
+            st.session_state["flash_show_answer"] = False
+            st.session_state["flash_timer_start"] = None
+            st.session_state["ta_choices"] = []
+            st.session_state["ta_answered"] = False
+            st.session_state["ta_correct"] = None
+            st.session_state["ta_selected_idx"] = -1
+            st.rerun()
+    else:
+        # 未回答中は自動更新
         time.sleep(0.5)
         st.rerun()
 
