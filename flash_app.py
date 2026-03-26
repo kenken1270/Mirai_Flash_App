@@ -545,13 +545,6 @@ def render_card_front(card: dict) -> None:
 
 
 def render_card_back(card: dict) -> None:
-    """
-    カード回答面を描画する（show_study / show_time_attack 共通）。
-    - 常に表示: meaning（意味）
-    - 英語系の場合: reading + phonetic を意味の下に表示
-    - 日本語系の場合: reading は問題面に既出なので表示しない
-    - 両方: meaning_zh（中国語訳）と example（例文）があれば表示
-    """
     meaning = card.get("meaning", "")
     reading = card.get("reading", "")
     phonetic = card.get("phonetic", "")
@@ -563,26 +556,28 @@ def render_card_back(card: dict) -> None:
     phonetic_html = ""
     if english:
         if reading:
-            reading_html = f"""
-            <div style="font-size:1rem; color:#667eea; margin-top:8px;">
-                {T("reading_label")}{reading}
-            </div>"""
+            reading_html = (
+                f"<div style='font-size:1rem; color:#667eea; margin-top:8px;'>"
+                f"{T('reading_label')}{reading}</div>"
+            )
         if phonetic:
-            phonetic_html = f"""
-            <div style="font-size:0.9rem; color:#888; margin-top:4px;">
-                {T("phonetic_label")}{phonetic}
-            </div>"""
+            phonetic_html = (
+                f"<div style='font-size:0.9rem; color:#888; margin-top:4px;'>"
+                f"{T('phonetic_label')}{phonetic}</div>"
+            )
 
     zh_html = ""
     if meaning_zh:
-        zh_html = f"""
-        <div style="font-size:0.95rem; color:#e06c00; margin-top:6px;">
-            {T("zh_meaning_label")}{meaning_zh}
-        </div>"""
+        zh_html = (
+            f"<div style='font-size:0.95rem; color:#e06c00; margin-top:6px;'>"
+            f"{T('zh_meaning_label')}{meaning_zh}</div>"
+        )
 
     example_html = ""
     if example:
-        example_html = f"<div class='card-example'>{T('example_lbl')}{example}</div>"
+        example_html = (
+            f"<div class='card-example'>{T('example_lbl')}{example}</div>"
+        )
 
     st.markdown(
         f"""
