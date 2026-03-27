@@ -2593,9 +2593,16 @@ def show_step1_select():
 
     # ── セット切り替え時に初期化 ──────────────────────────
     if st.session_state.get("step1_checked_set_id") != chosen_set_id:
+        # セット変更時は全リセット
         for w in words:
             st.session_state[f"chk_{w['id']}"] = True
         st.session_state["step1_checked_set_id"] = chosen_set_id
+    else:
+        # ★ 同じセット内でも、キーが存在しない単語は True で補完
+        # （タブ切り替えで session_state から消えた場合の復元）
+        for w in words:
+            if f"chk_{w['id']}" not in st.session_state:
+                st.session_state[f"chk_{w['id']}"] = True
 
     # ── ページ別グループ化 ────────────────────────────────
     from collections import OrderedDict
@@ -2692,6 +2699,10 @@ def show_step1_select():
 
             # 単語行
             for w in pg_words:
+                # ★ タブ切り替えで消えないよう、描画前にデフォルト値を確保
+                if f"chk_{w['id']}" not in st.session_state:
+                    st.session_state[f"chk_{w['id']}"] = True
+
                 c0, c1, c2, c3 = st.columns([0.5, 1, 3, 2])
                 with c0:
                     st.checkbox(
