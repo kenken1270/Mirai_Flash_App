@@ -555,6 +555,25 @@ def load_flashcards_by_set(set_id):
     except:
         return []
 
+
+@st.cache_data(ttl=30)
+def load_flashcards_for_step1(set_id: int):
+    try:
+        sb = get_supabase()
+        res = (
+            sb.table("flashcards")
+            .select(
+                "id, word, reading, phonetic, meaning, meaning_zh, page_range, item_no, category"
+            )
+            .eq("set_id", set_id)
+            .order("item_no")
+            .execute()
+        )
+        return res.data if res.data else []
+    except:
+        return []
+
+
 @st.cache_data(ttl=30)
 def load_review_logs(username):
     try:
@@ -785,6 +804,13 @@ for key, default in [
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
+
+if "word_list_queue" not in st.session_state:
+    st.session_state.word_list_queue = []
+if "selected_set_id" not in st.session_state:
+    st.session_state.selected_set_id = None
+if "flash_step" not in st.session_state:
+    st.session_state.flash_step = "home"
 
 # ─────────────────────────────
 # ログイン画面
@@ -1042,21 +1068,14 @@ def show_home(username):
 
     total_today = new_count + due_count
     if total_today > 0:
-        if st.button(T("start_study"), type="primary", use_container_width=True):
-            st.write("[DEBUG] ボタンが押されました")
-            queue = load_due_cards(username, selected_set_id)
-            st.write(f"[DEBUG] queue件数: {len(queue)}")
-            if queue:
-                st.session_state["flash_queue"] = queue
-                st.session_state["word_list_queue"] = queue
-                st.session_state["flash_index"] = 0
-                st.session_state["flash_show_answer"] = False
-                st.session_state["flash_session_results"] = []
-                st.session_state["flash_mode"] = "word_list"
-                st.write("[DEBUG] word_listモードに変更 → rerun")
-                st.rerun()
-            else:
-                st.warning("[DEBUG] queueが空です")
+        if st.button(
+            "🚀 今日の学習をはじめる！",
+            use_container_width=True,
+            type="primary",
+            key="btn_start_learning",
+        ):
+            st.session_state.flash_step = "select"
+            st.rerun()
     else:
         # 今日の分が終わった場合
         st.success(T("all_done"))
@@ -2533,19 +2552,227 @@ def show_result():
             st.session_state["flash_session_results"] = []
             st.rerun()
 
+
+# ==========================================================
+# ▼ STEP1: セット＆単語選択ページ
+# ==========================================================
+def show_step1_select():
+    st.markdown("## 📚 STEP 1：今日覚える単語を選ぼう")
+    st.caption("セットを選んで、今日覚えたい単語にチェックを入れてください。")
+
+    sets = load_flashcard_sets()
+    if not sets:
+        st.warning("セットが登録されていません。")
+        if st.button("← ホームに戻る"):
+            st.session_state.flash_step = "home"
+            st.rerun()
+        return
+
+    set_labels = [
+        f"{s['set_name']}（{s.get('category', '')}"
+        f"{' ' + s.get('grade', '') if s.get('grade') else ''}）"
+        for s in sets
+    ]
+    selected_idx = st.selectbox(
+        "セットを選んでください",
+        range(len(sets)),
+        format_func=lambda i: set_labels[i],
+        key="step1_set_select",
+    )
+    chosen_set = sets[selected_idx]
+    chosen_set_id = chosen_set["id"]
+
+    words = load_flashcards_for_step1(chosen_set_id)
+
+    if not words:
+        st.info("このセットには単語が登録されていません。")
+        if st.button("← 戻る", key="step1_back_empty"):
+            st.session_state.flash_step = "home"
+            st.rerun()
+        return
+
+    if st.session_state.get("step1_checked_set_id") != chosen_set_id:
+        st.session_state["step1_checked"] = {w["id"]: True for w in words}
+        st.session_state["step1_checked_set_id"] = chosen_set_id
+
+    st.markdown(f"**{chosen_set['set_name']}** ：全 {len(words)} 単語")
+    st.markdown("---")
+
+    col_all, col_none, _ = st.columns([1, 1, 4])
+    with col_all:
+        if st.button("☑ 全選択", key="step1_all"):
+            st.session_state["step1_checked"] = {w["id"]: True for w in words}
+            st.rerun()
+    with col_none:
+        if st.button("□ 全解除", key="step1_none"):
+            st.session_state["step1_checked"] = {w["id"]: False for w in words}
+            st.rerun()
+
+    checked_state = st.session_state["step1_checked"]
+    _, h1, h2, h3, h4 = st.columns([0.5, 1, 2, 2, 1])
+    with h1:
+        st.caption("No.")
+    with h2:
+        st.caption("単語")
+    with h3:
+        st.caption("意味")
+    with h4:
+        st.caption("ページ")
+    st.divider()
+
+    for w in words:
+        c0, c1, c2, c3, c4 = st.columns([0.5, 1, 2, 2, 1])
+        with c0:
+            new_val = st.checkbox(
+                "",
+                value=checked_state.get(w["id"], True),
+                key=f"step1_chk_{w['id']}",
+                label_visibility="collapsed",
+            )
+            checked_state[w["id"]] = new_val
+        with c1:
+            st.caption(f"No.{w.get('item_no', '-')}")
+        with c2:
+            st.markdown(f"**{w['word']}**")
+            if w.get("reading"):
+                st.caption(w["reading"])
+        with c3:
+            cat = str(w.get("category", ""))
+            if "みんなの日本語" in cat:
+                st.caption(w.get("meaning_zh", ""))
+            else:
+                st.caption(w.get("meaning", ""))
+        with c4:
+            st.caption(str(w.get("page_range", "")))
+
+    st.session_state["step1_checked"] = checked_state
+
+    selected_ids = [wid for wid, chk in checked_state.items() if chk]
+    st.markdown(f"✅ **{len(selected_ids)} 単語** 選択中")
+
+    st.markdown("---")
+    col_back, col_next = st.columns([1, 3])
+    with col_back:
+        if st.button("← ホーム", key="step1_back"):
+            st.session_state.flash_step = "home"
+            st.rerun()
+    with col_next:
+        if st.button(
+            f"📋 単語一覧で確認する（{len(selected_ids)}単語）→",
+            type="primary",
+            use_container_width=True,
+            key="step1_next",
+            disabled=(len(selected_ids) == 0),
+        ):
+            selected_words = [w for w in words if w["id"] in selected_ids]
+            st.session_state.word_list_queue = selected_words
+            st.session_state.selected_set_id = chosen_set_id
+            st.session_state.flash_step = "list"
+            st.rerun()
+
+
+# ==========================================================
+# ▼ STEP2: 単語一覧ページ（見て覚える）
+# ==========================================================
+def show_step2_list():
+    words = st.session_state.get("word_list_queue", [])
+    if not words:
+        st.session_state.flash_step = "select"
+        st.rerun()
+        return
+
+    st.markdown("## 📋 STEP 2：単語を見て覚えよう")
+    st.caption(
+        "声に出したり、ノートに書いて覚えましょう。"
+        "覚えたら下のボタンでチェックへ進んでください。"
+    )
+    st.markdown(f"**今日の単語：{len(words)} 語**")
+    st.markdown("---")
+
+    for w in words:
+        page_val = str(w.get("page_range", "")).strip()
+        item_val = w.get("item_no")
+        badge_parts = []
+        if page_val and page_val not in ("None", "nan", ""):
+            badge_parts.append(f"📄 {page_val}")
+        if item_val is not None:
+            badge_parts.append(f"No.{item_val}")
+        badge_str = "　".join(badge_parts)
+
+        html_parts = [
+            '<div style="border-left: 4px solid #F0C040;'
+            "background: #fffdf0;"
+            "border-radius: 0 12px 12px 0;"
+            "padding: 12px 16px;"
+            'margin-bottom: 8px;">',
+            f'<div style="font-size:11px;color:#888;margin-bottom:4px;">{badge_str}</div>',
+            f'<div style="font-size:1.3rem;font-weight:bold;color:#2d3436;">{w["word"]}</div>',
+        ]
+        if w.get("reading"):
+            html_parts.append(
+                f'<div style="font-size:0.85rem;color:#636e72;">　{w["reading"]}</div>'
+            )
+        ph = w.get("phonetic")
+        if ph and str(ph) not in ("None", "nan", ""):
+            html_parts.append(
+                '<div style="font-size:0.85rem;color:#0984e3;font-style:italic;">'
+                f"　🔤 {ph}</div>"
+            )
+        if w.get("meaning"):
+            html_parts.append(
+                '<div style="font-size:1rem;color:#2d3436;margin-top:4px;">'
+                f"　{w['meaning']}</div>"
+            )
+        mzh = w.get("meaning_zh")
+        if mzh and str(mzh) not in ("None", "nan", ""):
+            html_parts.append(
+                '<div style="font-size:0.9rem;color:#6c5ce7;margin-top:2px;">'
+                f"　🇨🇳 {mzh}</div>"
+            )
+        html_parts.append("</div>")
+        st.markdown("".join(html_parts), unsafe_allow_html=True)
+
+    st.markdown("---")
+    col_back, col_next = st.columns([1, 3])
+    with col_back:
+        if st.button("← 単語を選び直す", key="step2_back"):
+            st.session_state.flash_step = "select"
+            st.rerun()
+    with col_next:
+        if st.button(
+            "✅ 覚えた！単語チェックをはじめる →",
+            type="primary",
+            use_container_width=True,
+            key="step2_next",
+        ):
+            st.session_state["flash_queue"] = list(st.session_state["word_list_queue"])
+            st.session_state["flash_index"] = 0
+            st.session_state["flash_session_results"] = []
+            st.session_state["flash_show_answer"] = False
+            st.session_state["flash_mode"] = "study"
+            st.session_state.flash_step = "study"
+            st.rerun()
+
+
 # ─────────────────────────────
 # 画面ルーティング
 # ─────────────────────────────
-mode = st.session_state["flash_mode"]
-if mode == "home":
-    show_home(username)
-elif mode == "word_list":
-    show_word_list()
-elif mode == "study":
-    show_study(username)
-elif mode == "time_attack":
+flash_step = st.session_state.get("flash_step", "home")
+
+if flash_step == "select":
+    show_step1_select()
+elif flash_step == "list":
+    show_step2_list()
+elif st.session_state.get("flash_mode") == "time_attack":
     show_time_attack(username)
-elif mode == "ranking":
-    show_ranking()
-elif mode == "result":
+elif st.session_state.get("flash_mode") == "result":
     show_result()
+elif st.session_state.get("flash_mode") == "ranking":
+    show_ranking()
+elif (
+    flash_step == "study"
+    or st.session_state.get("flash_mode") == "study"
+) and st.session_state.get("flash_mode") != "home":
+    show_study(username)
+else:
+    show_home(username)
