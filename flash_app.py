@@ -2733,127 +2733,231 @@ def show_step2_list():
     def safe(v):
         return str(v) if v and str(v) not in ("None", "nan", "") else ""
 
-    st.markdown("## 📋 STEP 2・単語を見て覚えよう")
-    st.caption(
-        "声に出したり、ノートに書いて覚えましょう。"
-        "覚えたら下のボタンでチェックへ進んでください。"
-    )
-    st.markdown(f"**今日の単語：{len(words)} 語**")
-    st.markdown("---")
+    # ── セッション初期化 ──────────────────────────
+    if st.session_state.get("fc_words_snapshot") != [w["id"] for w in words]:
+        st.session_state["fc_index"] = 0
+        st.session_state["fc_show_ans"] = False
+        st.session_state["fc_known"] = []  # 知ってたカードID
+        st.session_state["fc_unknown"] = []  # 知らなかったカードID
+        st.session_state["fc_start_time"] = None
+        st.session_state["fc_phase"] = "study"  # study / result / retry
+        st.session_state["fc_retry_words"] = []
+        st.session_state["fc_words_snapshot"] = [w["id"] for w in words]
 
-    # 答え表示状態を初期化
-    for w in words:
-        if f"show_ans_{w['id']}" not in st.session_state:
-            st.session_state[f"show_ans_{w['id']}"] = False
+    phase = st.session_state.get("fc_phase", "study")
 
-    # ヘッダー行
-    col_h1, col_h2 = st.columns(2)
-    with col_h1:
-        st.markdown(
-            '<p style="font-size:0.8rem;color:#aaa;font-weight:bold;'
-            'text-align:center;margin:0;">🔤 問題</p>',
-            unsafe_allow_html=True,
-        )
-    with col_h2:
-        st.markdown(
-            '<p style="font-size:0.8rem;color:#aaa;font-weight:bold;'
-            'text-align:center;margin:0;">✅ 答え（タップで表示）</p>',
-            unsafe_allow_html=True,
-        )
-    st.divider()
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE: result（全カード完了後の結果画面）
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    if phase == "result":
+        known_ids = st.session_state.get("fc_known", [])
+        unknown_ids = st.session_state.get("fc_unknown", [])
+        total = len(known_ids) + len(unknown_ids)
 
-    # 単語行
-    for w in words:
-        lang1 = safe(w.get("lang1", ""))
-        lang1_sub = safe(w.get("lang1_sub", ""))
-        lang2 = safe(w.get("lang2", ""))
-        lang2_sub = safe(w.get("lang2_sub", ""))
-        lang3 = safe(w.get("lang3", ""))
-        lang3_sub = safe(w.get("lang3_sub", ""))
-        item_no = w.get("item_no")
-        page_val = safe(w.get("page_range", ""))
-        ans_key = f"show_ans_{w['id']}"
+        st.markdown("## 🎉 結果発表！")
+        st.markdown("---")
 
-        # バッジ
-        badge_parts = []
-        if page_val:
-            badge_parts.append(f"📄 {page_val}")
-        if item_no is not None:
-            badge_parts.append(f"No.{item_no}")
-        badge_str = "　".join(badge_parts)
-
-        # 答えの補足情報
-        a_subs = [s for s in [lang2_sub, lang3, lang3_sub] if s]
-
-        col_q, col_a = st.columns(2)
-
-        # 左：問題
-        with col_q:
+        col_k, col_u = st.columns(2)
+        with col_k:
             st.markdown(
-                f'<div style="background:#f8f9fa;border-left:4px solid #4C6EF5;'
-                f'border-radius:0 8px 8px 0;padding:10px 14px;min-height:80px;">'
-                f'<div style="font-size:0.72rem;color:#aaa;margin-bottom:4px;">{badge_str}</div>'
-                f'<div style="font-size:1.2rem;font-weight:bold;color:#2d3436;">{lang1}</div>'
-                + (
-                    f'<div style="font-size:0.82rem;color:#888;margin-top:2px;">{lang1_sub}</div>'
-                    if lang1_sub
-                    else ""
-                )
-                + "</div>",
+                f'<div style="background:#f0fff4;border-radius:12px;padding:20px;text-align:center;">'
+                f'<div style="font-size:2rem;font-weight:bold;color:#00b894;">{len(known_ids)}</div>'
+                f'<div style="font-size:0.9rem;color:#636e72;">✅ 知ってた</div>'
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+        with col_u:
+            st.markdown(
+                f'<div style="background:#fff5f5;border-radius:12px;padding:20px;text-align:center;">'
+                f'<div style="font-size:2rem;font-weight:bold;color:#e17055;">{len(unknown_ids)}</div>'
+                f'<div style="font-size:0.9rem;color:#636e72;">❌ 知らなかった</div>'
+                f"</div>",
                 unsafe_allow_html=True,
             )
 
-        # 右：答え（トグル）
-        with col_a:
-            if st.session_state.get(ans_key, False):
-                a_sub_html = "".join(
-                    f'<div style="font-size:0.78rem;color:#636e72;margin-top:2px;">{s}</div>'
-                    for s in a_subs
-                )
-                st.markdown(
-                    f'<div style="background:#f0fff4;border-left:4px solid #00b894;'
-                    f'border-radius:0 8px 8px 0;padding:10px 14px;min-height:80px;">'
-                    f'<div style="font-size:1.1rem;font-weight:bold;color:#00b894;">{lang2}</div>'
-                    f"{a_sub_html}</div>",
-                    unsafe_allow_html=True,
-                )
-                if st.button("🙈 隠す", key=f"hide_{w['id']}", use_container_width=True):
-                    st.session_state[ans_key] = False
+        st.markdown("")
+
+        if total > 0:
+            pct = int(len(known_ids) / total * 100)
+            st.progress(pct / 100)
+            st.caption(f"正答率：{pct}%　（{len(known_ids)} / {total} 語）")
+
+        st.markdown("---")
+
+        # ボタン群
+        col_b1, col_b2, col_b3 = st.columns(3)
+        with col_b1:
+            if st.button("← 単語を選び直す", use_container_width=True, key="res_back"):
+                st.session_state.flash_step = "select"
+                st.rerun()
+        with col_b2:
+            if unknown_ids:
+                if st.button(
+                    "🔁 知らなかった単語を再挑戦",
+                    use_container_width=True,
+                    type="primary",
+                    key="res_retry",
+                ):
+                    retry_words = [w for w in words if w["id"] in unknown_ids]
+                    st.session_state["fc_retry_words"] = retry_words
+                    st.session_state["fc_index"] = 0
+                    st.session_state["fc_show_ans"] = False
+                    st.session_state["fc_known"] = []
+                    st.session_state["fc_unknown"] = []
+                    st.session_state["fc_start_time"] = None
+                    st.session_state["fc_phase"] = "retry"
+                    st.session_state["fc_words_snapshot"] = None
                     st.rerun()
             else:
-                st.markdown(
-                    '<div style="background:#dfe6e9;border-radius:8px;'
-                    "padding:10px 14px;min-height:80px;"
-                    'display:flex;align-items:center;justify-content:center;">'
-                    '<span style="color:#b2bec3;font-size:0.9rem;">？？？</span></div>',
-                    unsafe_allow_html=True,
-                )
-                if st.button("👁 答えを見る", key=f"show_{w['id']}", use_container_width=True):
-                    st.session_state[ans_key] = True
-                    st.rerun()
+                st.success("全部知ってた！完璧です🎊")
+        with col_b3:
+            if st.button("✅ 単語チェックへ進む →", use_container_width=True, key="res_next"):
+                st.session_state["flash_queue"] = list(words)
+                st.session_state["flash_index"] = 0
+                st.session_state["flash_session_results"] = []
+                st.session_state["flash_show_answer"] = False
+                st.session_state["flash_mode"] = "study"
+                st.session_state.flash_step = "study"
+                st.rerun()
+        return
 
-        st.divider()
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE: retry（知らなかった単語の再挑戦）
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    if phase == "retry":
+        words = st.session_state.get("fc_retry_words", [])
+        if not words:
+            st.session_state["fc_phase"] = "result"
+            st.rerun()
+            return
 
-    # ナビゲーション
-    col_back, col_next = st.columns([1, 3])
-    with col_back:
-        if st.button("← 単語を選び直す", key="step2_back", use_container_width=True):
-            st.session_state.flash_step = "select"
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE: study / retry 共通（カード表示）
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    idx = st.session_state.get("fc_index", 0)
+    show_ans = st.session_state.get("fc_show_ans", False)
+
+    if idx >= len(words):
+        st.session_state["fc_phase"] = "result"
+        st.rerun()
+        return
+
+    w = words[idx]
+    lang1 = safe(w.get("lang1", ""))
+    lang1_sub = safe(w.get("lang1_sub", ""))
+    lang2 = safe(w.get("lang2", ""))
+    lang2_sub = safe(w.get("lang2_sub", ""))
+    lang3 = safe(w.get("lang3", ""))
+    lang3_sub = safe(w.get("lang3_sub", ""))
+    item_no = w.get("item_no")
+    page_val = safe(w.get("page_range", ""))
+
+    # タイマー開始（カード表示時）
+    import time
+
+    if st.session_state.get("fc_start_time") is None:
+        st.session_state["fc_start_time"] = time.time()
+
+    # ── ヘッダー ──────────────────────────────
+    phase_label = "🔁 再挑戦モード" if phase == "retry" else "📖 STEP 2・フラッシュカード"
+    st.markdown(f"## {phase_label}")
+
+    prog_col, count_col = st.columns([4, 1])
+    with prog_col:
+        st.progress((idx) / len(words))
+    with count_col:
+        st.markdown(
+            f'<p style="text-align:right;font-size:0.9rem;color:#636e72;margin:0;">'
+            f"{idx + 1} / {len(words)}</p>",
+            unsafe_allow_html=True,
+        )
+
+    # バッジ
+    badge_parts = []
+    if page_val:
+        badge_parts.append(f"📄 {page_val}")
+    if item_no is not None:
+        badge_parts.append(f"No.{item_no}")
+    badge_str = "　".join(badge_parts)
+
+    st.markdown("---")
+
+    # ── カード表示 ────────────────────────────
+    if not show_ans:
+        # 表面（問題）
+        st.markdown(
+            f'<div style="background:#f0f4ff;border-radius:16px;padding:40px 32px;'
+            f'text-align:center;min-height:200px;box-shadow:0 2px 8px rgba(76,110,245,0.10);">'
+            f'<div style="font-size:0.75rem;color:#aaa;margin-bottom:12px;">{badge_str}</div>'
+            f'<div style="font-size:2rem;font-weight:bold;color:#2d3436;letter-spacing:0.04em;">'
+            f"{lang1}</div>"
+            + (
+                f'<div style="font-size:1rem;color:#888;margin-top:10px;">{lang1_sub}</div>'
+                if lang1_sub
+                else ""
+            )
+            + f"</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown("")
+
+        if st.button("👁 答えを見る", type="primary", use_container_width=True, key="fc_show"):
+            st.session_state["fc_show_ans"] = True
             st.rerun()
-    with col_next:
-        if st.button(
-            "✅ 覚えた！単語チェックをはじめる →",
-            type="primary",
-            use_container_width=True,
-            key="step2_next",
-        ):
-            st.session_state["flash_queue"] = list(st.session_state["word_list_queue"])
-            st.session_state["flash_index"] = 0
-            st.session_state["flash_session_results"] = []
-            st.session_state["flash_show_answer"] = False
-            st.session_state["flash_mode"] = "study"
-            st.session_state.flash_step = "study"
-            st.rerun()
+
+    else:
+        # 裏面（答え）
+        elapsed = time.time() - st.session_state.get("fc_start_time", time.time())
+        elapsed_str = f"{elapsed:.1f}秒"
+
+        a_subs = [s for s in [lang2_sub, lang3, lang3_sub] if s]
+        a_sub_html = "".join(
+            f'<div style="font-size:0.85rem;color:#636e72;margin-top:6px;">{s}</div>'
+            for s in a_subs
+        )
+
+        st.markdown(
+            f'<div style="background:#f0fff4;border-radius:16px;padding:40px 32px;'
+            f'text-align:center;min-height:200px;box-shadow:0 2px 8px rgba(0,184,148,0.10);">'
+            f'<div style="font-size:0.75rem;color:#aaa;margin-bottom:12px;">{badge_str}</div>'
+            f'<div style="font-size:1rem;color:#888;margin-bottom:8px;">{lang1}'
+            + (f'　<span style="font-size:0.85rem;">{lang1_sub}</span>' if lang1_sub else "")
+            + f"</div>"
+            f'<div style="font-size:2rem;font-weight:bold;color:#00b894;">{lang2}</div>'
+            f"{a_sub_html}"
+            f'<div style="font-size:0.75rem;color:#b2bec3;margin-top:16px;">⏱ {elapsed_str}</div>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown("")
+
+        col_known, col_unknown = st.columns(2)
+        with col_known:
+            if st.button(
+                "✅ 知ってた！",
+                type="primary",
+                use_container_width=True,
+                key="fc_btn_known",
+            ):
+                st.session_state["fc_known"].append(w["id"])
+                st.session_state["fc_index"] += 1
+                st.session_state["fc_show_ans"] = False
+                st.session_state["fc_start_time"] = None
+                st.rerun()
+        with col_unknown:
+            if st.button("❌ 知らなかった", use_container_width=True, key="fc_btn_unknown"):
+                st.session_state["fc_unknown"].append(w["id"])
+                st.session_state["fc_index"] += 1
+                st.session_state["fc_show_ans"] = False
+                st.session_state["fc_start_time"] = None
+                st.rerun()
+
+    st.markdown("---")
+    if st.button("← 単語を選び直す", key="fc_back", use_container_width=False):
+        st.session_state.flash_step = "select"
+        st.rerun()
 
 
 # ─────────────────────────────
