@@ -2554,7 +2554,7 @@ def show_result():
 
 
 # ==========================================================
-# ✅ STEP1: セット選択 & 単語選択ページ（タブ式ページ切り替え版）
+# ✅ STEP1: セット選択 & 単語選択ページ（タブ式・ページ選択修正版）
 # ==========================================================
 def show_step1_select():
     st.markdown("## ✅ STEP 1・今日覚える単語を選ぼう")
@@ -2593,16 +2593,25 @@ def show_step1_select():
 
     # ── セット切り替え時に初期化 ──────────────────────────
     if st.session_state.get("step1_checked_set_id") != chosen_set_id:
-        # セット変更時は全リセット
         for w in words:
             st.session_state[f"chk_{w['id']}"] = True
         st.session_state["step1_checked_set_id"] = chosen_set_id
     else:
-        # ★ 同じセット内でも、キーが存在しない単語は True で補完
-        # （タブ切り替えで session_state から消えた場合の復元）
         for w in words:
             if f"chk_{w['id']}" not in st.session_state:
                 st.session_state[f"chk_{w['id']}"] = True
+
+    # ── ページ別ボタン操作（rerun前に処理してフラグを消す）──
+    # ページ全選択・解除フラグを処理（タブ描画前に実行）
+    action_key = st.session_state.pop("_page_action_key", None)
+    action_type = st.session_state.pop("_page_action_type", None)
+    if action_key and action_type:
+        for w in words:
+            pg = str(w.get("page_range", "")).strip()
+            if not pg or pg in ("None", "nan", ""):
+                pg = "ページ未設定"
+            if pg == action_key:
+                st.session_state[f"chk_{w['id']}"] = action_type == "select"
 
     # ── ページ別グループ化 ────────────────────────────────
     from collections import OrderedDict
@@ -2619,29 +2628,45 @@ def show_step1_select():
     pg_labels = list(page_groups.keys())
     pg_words_list = list(page_groups.values())
 
-    # ── 選択数カウント（リアルタイム）──────────────────────
     def count_selected():
         return sum(1 for w in words if st.session_state.get(f"chk_{w['id']}", True))
 
     # ════════════════════════════════════════════
-    # 【上部】完了ボタン + 全体の全選択・全解除
+    # 【上部】選択数 + 全体ボタン + 完了ボタン
     # ════════════════════════════════════════════
     selected_count = count_selected()
 
     st.markdown(f"### 📌 現在 **{selected_count} 単語** 選択中")
 
-    col_top_all, col_top_none, col_top_next = st.columns([1, 1, 3])
-    with col_top_all:
-        if st.button("☑ 全選択", key="top_all"):
+    # ボタン共通CSS
+    st.markdown(
+        """
+    <style>
+    div[data-testid="stButton"] > button {
+        border-radius: 8px !important;
+        font-weight: bold !important;
+        font-size: 0.85rem !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+    </style>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    # 全体操作ライン
+    st.markdown("**🌐 全体操作**")
+    col_all, col_none, col_go = st.columns([1, 1, 3])
+    with col_all:
+        if st.button("☑ 全選択", key="top_all", use_container_width=True):
             for w in words:
                 st.session_state[f"chk_{w['id']}"] = True
             st.rerun()
-    with col_top_none:
-        if st.button("☐ 全解除", key="top_none"):
+    with col_none:
+        if st.button("☐ 全解除", key="top_none", use_container_width=True):
             for w in words:
                 st.session_state[f"chk_{w['id']}"] = False
             st.rerun()
-    with col_top_next:
+    with col_go:
         if st.button(
             f"📖 単語一覧で確認する（{selected_count}単語）→",
             type="primary",
@@ -2667,27 +2692,46 @@ def show_step1_select():
     )
 
     tabs = st.tabs(
-        [f"📄 {lbl}（{len(pg_words_list[i])}語）" for i, lbl in enumerate(pg_labels)]
+        [
+            f"📄 {lbl}（{len(pg_words_list[i])}語）"
+            for i, lbl in enumerate(pg_labels)
+        ]
     )
 
     for tab, pg_label, pg_words in zip(tabs, pg_labels, pg_words_list):
         with tab:
-            pg_key = pg_label.replace(".", "_").replace(" ", "_")
+            # ── このページの選択数 ──────────────────────────
+            pg_selected = sum(
+                1 for w in pg_words if st.session_state.get(f"chk_{w['id']}", True)
+            )
+            st.caption(f"このページ: {pg_selected} / {len(pg_words)} 語 選択中")
 
-            # タブ内の全選択・全解除
-            col_pg_all, col_pg_none, _ = st.columns([1, 1, 4])
+            # ── このページ操作ライン ────────────────────────
+            st.markdown("**📄 このページの操作**")
+            col_pg_all, col_pg_none, _ = st.columns([1.2, 1.2, 3])
             with col_pg_all:
-                if st.button("☑ このページ全選択", key=f"pg_all_{pg_key}"):
-                    for w in pg_words:
-                        st.session_state[f"chk_{w['id']}"] = True
+                if st.button(
+                    "☑ このページ全選択",
+                    key=f"pg_all_{pg_label}",
+                    use_container_width=True,
+                ):
+                    # フラグ経由で安全に処理
+                    st.session_state["_page_action_key"] = pg_label
+                    st.session_state["_page_action_type"] = "select"
                     st.rerun()
             with col_pg_none:
-                if st.button("☐ このページ解除", key=f"pg_none_{pg_key}"):
-                    for w in pg_words:
-                        st.session_state[f"chk_{w['id']}"] = False
+                if st.button(
+                    "☐ このページ解除",
+                    key=f"pg_none_{pg_label}",
+                    use_container_width=True,
+                ):
+                    st.session_state["_page_action_key"] = pg_label
+                    st.session_state["_page_action_type"] = "deselect"
                     st.rerun()
 
-            # ヘッダー行
+            st.divider()
+
+            # ── ヘッダー行 ──────────────────────────────────
             _, h1, h2, h3 = st.columns([0.5, 1, 3, 2])
             with h1:
                 st.caption("No.")
@@ -2697,9 +2741,8 @@ def show_step1_select():
                 st.caption("意味")
             st.divider()
 
-            # 単語行
+            # ── 単語行 ──────────────────────────────────────
             for w in pg_words:
-                # ★ タブ切り替えで消えないよう、描画前にデフォルト値を確保
                 if f"chk_{w['id']}" not in st.session_state:
                     st.session_state[f"chk_{w['id']}"] = True
 
@@ -2730,7 +2773,7 @@ def show_step1_select():
     selected_count_bottom = count_selected()
     col_back, col_next_bottom = st.columns([1, 3])
     with col_back:
-        if st.button("← ホーム", key="step1_back"):
+        if st.button("← ホーム", key="step1_back", use_container_width=True):
             st.session_state.flash_step = "home"
             st.rerun()
     with col_next_bottom:
