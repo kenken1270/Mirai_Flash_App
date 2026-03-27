@@ -2602,16 +2602,11 @@ def show_step1_select():
                 st.session_state[f"chk_{w['id']}"] = True
 
     # ── ページ別ボタン操作（rerun前に処理してフラグを消す）──
-    # ページ全選択・解除フラグを処理（タブ描画前に実行）
-    action_key = st.session_state.pop("_page_action_key", None)
+    action_ids = st.session_state.pop("_page_action_ids", None)
     action_type = st.session_state.pop("_page_action_type", None)
-    if action_key and action_type:
-        for w in words:
-            pg = str(w.get("page_range", "")).strip()
-            if not pg or pg in ("None", "nan", ""):
-                pg = "ページ未設定"
-            if pg == action_key:
-                st.session_state[f"chk_{w['id']}"] = action_type == "select"
+    if action_ids and action_type:
+        for wid in action_ids:
+            st.session_state[f"chk_{wid}"] = action_type == "select"
 
     # ── ページ別グループ化 ────────────────────────────────
     from collections import OrderedDict
@@ -2715,8 +2710,8 @@ def show_step1_select():
                     key=f"pg_all_{pg_label}",
                     use_container_width=True,
                 ):
-                    # フラグ経由で安全に処理
-                    st.session_state["_page_action_key"] = pg_label
+                    # ★ pg_labelではなく単語IDリストを渡す（表記ゆれに影響されない）
+                    st.session_state["_page_action_ids"] = [w["id"] for w in pg_words]
                     st.session_state["_page_action_type"] = "select"
                     st.rerun()
             with col_pg_none:
@@ -2725,7 +2720,7 @@ def show_step1_select():
                     key=f"pg_none_{pg_label}",
                     use_container_width=True,
                 ):
-                    st.session_state["_page_action_key"] = pg_label
+                    st.session_state["_page_action_ids"] = [w["id"] for w in pg_words]
                     st.session_state["_page_action_type"] = "deselect"
                     st.rerun()
 
