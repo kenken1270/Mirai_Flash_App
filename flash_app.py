@@ -2554,7 +2554,7 @@ def show_result():
 
 
 # ==========================================================
-# ✅ STEP1: セット選択 & 単語選択ページ
+# ✅ STEP1: セット選択 & 単語選択ページ（タブ式ページ切り替え版）
 # ==========================================================
 def show_step1_select():
     st.markdown("## ✅ STEP 1・今日覚える単語を選ぼう")
@@ -2597,24 +2597,7 @@ def show_step1_select():
             st.session_state[f"chk_{w['id']}"] = True
         st.session_state["step1_checked_set_id"] = chosen_set_id
 
-    st.markdown(f"**{chosen_set['set_name']}** ・全 {len(words)} 単語")
-    st.markdown("---")
-
-    # ── 全選択・全解除ボタン ──────────────────────────────
-    col_all, col_none, _ = st.columns([1, 1, 4])
-    with col_all:
-        if st.button("☑ 全選択", key="step1_all"):
-            for w in words:
-                st.session_state[f"chk_{w['id']}"] = True
-            st.rerun()
-    with col_none:
-        if st.button("☐ 全解除", key="step1_none"):
-            for w in words:
-                st.session_state[f"chk_{w['id']}"] = False
-            st.rerun()
-
     # ── ページ別グループ化 ────────────────────────────────
-    # page_range でグループ分け（例: "p.45" → グループ "p.45"）
     from collections import OrderedDict
 
     page_groups = OrderedDict()
@@ -2626,81 +2609,130 @@ def show_step1_select():
             page_groups[pg] = []
         page_groups[pg].append(w)
 
-    # ── ページごとにまとめて表示 ──────────────────────────
-    for pg_label, pg_words in page_groups.items():
-        # ページヘッダー + ページ一括選択・解除ボタン
-        pg_key = pg_label.replace(".", "_").replace(" ", "_")
-        col_pg_title, col_pg_all, col_pg_none = st.columns([3, 1, 1])
-        with col_pg_title:
-            st.markdown(f"**📄 {pg_label}**（{len(pg_words)}単語）")
-        with col_pg_all:
-            if st.button("全選択", key=f"pg_all_{pg_key}"):
-                for w in pg_words:
-                    st.session_state[f"chk_{w['id']}"] = True
-                st.rerun()
-        with col_pg_none:
-            if st.button("解除", key=f"pg_none_{pg_key}"):
-                for w in pg_words:
-                    st.session_state[f"chk_{w['id']}"] = False
-                st.rerun()
+    pg_labels = list(page_groups.keys())
+    pg_words_list = list(page_groups.values())
 
-        # ヘッダー行
-        _, h1, h2, h3, h4 = st.columns([0.5, 1, 2, 2, 1])
-        with h1:
-            st.caption("No.")
-        with h2:
-            st.caption("単語")
-        with h3:
-            st.caption("意味")
-        with h4:
-            st.caption("ページ")
-        st.divider()
+    # ── 選択数カウント（リアルタイム）──────────────────────
+    def count_selected():
+        return sum(1 for w in words if st.session_state.get(f"chk_{w['id']}", True))
 
-        # 単語行
-        for w in pg_words:
-            c0, c1, c2, c3, c4 = st.columns([0.5, 1, 2, 2, 1])
-            with c0:
-                st.checkbox(
-                    "",
-                    key=f"chk_{w['id']}",
-                    label_visibility="collapsed",
-                )
-            with c1:
-                st.caption(f"No.{w.get('item_no', '-')}")
-            with c2:
-                st.markdown(f"**{w['word']}**")
-                if w.get("reading"):
-                    st.caption(w["reading"])
-            with c3:
-                cat = str(w.get("category", ""))
-                if "みんなの日本語" in cat:
-                    st.caption(w.get("meaning_zh", ""))
-                else:
-                    st.caption(w.get("meaning", ""))
-            with c4:
-                st.caption(str(w.get("page_range", "")))
+    # ════════════════════════════════════════════
+    # 【上部】完了ボタン + 全体の全選択・全解除
+    # ════════════════════════════════════════════
+    selected_count = count_selected()
 
-        st.markdown("")  # ページグループ間のスペース
+    st.markdown(f"### 📌 現在 **{selected_count} 単語** 選択中")
 
-    # ── 選択数カウント（session_state の chk_* を直接読む）──
-    selected_ids = [w["id"] for w in words if st.session_state.get(f"chk_{w['id']}", True)]
-    st.markdown(f"📌 **{len(selected_ids)} 単語** 選択中")
+    col_top_all, col_top_none, col_top_next = st.columns([1, 1, 3])
+    with col_top_all:
+        if st.button("☑ 全選択", key="top_all"):
+            for w in words:
+                st.session_state[f"chk_{w['id']}"] = True
+            st.rerun()
+    with col_top_none:
+        if st.button("☐ 全解除", key="top_none"):
+            for w in words:
+                st.session_state[f"chk_{w['id']}"] = False
+            st.rerun()
+    with col_top_next:
+        if st.button(
+            f"📖 単語一覧で確認する（{selected_count}単語）→",
+            type="primary",
+            use_container_width=True,
+            key="step1_next_top",
+            disabled=(selected_count == 0),
+        ):
+            selected_words = [
+                w for w in words if st.session_state.get(f"chk_{w['id']}", True)
+            ]
+            st.session_state.word_list_queue = selected_words
+            st.session_state.selected_set_id = chosen_set_id
+            st.session_state.flash_step = "list"
+            st.rerun()
 
     st.markdown("---")
-    col_back, col_next = st.columns([1, 3])
+
+    # ════════════════════════════════════════════
+    # 【中央】ページ別タブ
+    # ════════════════════════════════════════════
+    st.markdown(
+        f"**{chosen_set['set_name']}** ・全 {len(words)} 単語 ／ {len(pg_labels)} ページ"
+    )
+
+    tabs = st.tabs(
+        [f"📄 {lbl}（{len(pg_words_list[i])}語）" for i, lbl in enumerate(pg_labels)]
+    )
+
+    for tab, pg_label, pg_words in zip(tabs, pg_labels, pg_words_list):
+        with tab:
+            pg_key = pg_label.replace(".", "_").replace(" ", "_")
+
+            # タブ内の全選択・全解除
+            col_pg_all, col_pg_none, _ = st.columns([1, 1, 4])
+            with col_pg_all:
+                if st.button("☑ このページ全選択", key=f"pg_all_{pg_key}"):
+                    for w in pg_words:
+                        st.session_state[f"chk_{w['id']}"] = True
+                    st.rerun()
+            with col_pg_none:
+                if st.button("☐ このページ解除", key=f"pg_none_{pg_key}"):
+                    for w in pg_words:
+                        st.session_state[f"chk_{w['id']}"] = False
+                    st.rerun()
+
+            # ヘッダー行
+            _, h1, h2, h3 = st.columns([0.5, 1, 3, 2])
+            with h1:
+                st.caption("No.")
+            with h2:
+                st.caption("単語")
+            with h3:
+                st.caption("意味")
+            st.divider()
+
+            # 単語行
+            for w in pg_words:
+                c0, c1, c2, c3 = st.columns([0.5, 1, 3, 2])
+                with c0:
+                    st.checkbox(
+                        "",
+                        key=f"chk_{w['id']}",
+                        label_visibility="collapsed",
+                    )
+                with c1:
+                    st.caption(f"No.{w.get('item_no', '-')}")
+                with c2:
+                    st.markdown(f"**{w['word']}**")
+                    if w.get("reading"):
+                        st.caption(w["reading"])
+                with c3:
+                    cat = str(w.get("category", ""))
+                    if "みんなの日本語" in cat:
+                        st.caption(w.get("meaning_zh", ""))
+                    else:
+                        st.caption(w.get("meaning", ""))
+
+    # ════════════════════════════════════════════
+    # 【下部】完了ボタン（再掲）
+    # ════════════════════════════════════════════
+    st.markdown("---")
+    selected_count_bottom = count_selected()
+    col_back, col_next_bottom = st.columns([1, 3])
     with col_back:
         if st.button("← ホーム", key="step1_back"):
             st.session_state.flash_step = "home"
             st.rerun()
-    with col_next:
+    with col_next_bottom:
         if st.button(
-            f"📖 単語一覧で確認する（{len(selected_ids)}単語）",
+            f"📖 単語一覧で確認する（{selected_count_bottom}単語）→",
             type="primary",
             use_container_width=True,
-            key="step1_next",
-            disabled=(len(selected_ids) == 0),
+            key="step1_next_bottom",
+            disabled=(selected_count_bottom == 0),
         ):
-            selected_words = [w for w in words if w["id"] in selected_ids]
+            selected_words = [
+                w for w in words if st.session_state.get(f"chk_{w['id']}", True)
+            ]
             st.session_state.word_list_queue = selected_words
             st.session_state.selected_set_id = chosen_set_id
             st.session_state.flash_step = "list"
