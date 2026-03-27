@@ -2661,38 +2661,92 @@ def show_step1_select():
         # 選択された単語を全表示
         st.markdown("**📋 選択された単語：**")
         for w in selected_words:
-            col_a, col_b, col_c = st.columns([1, 2.5, 2.5])
-            with col_a:
-                st.markdown(
-                    f'<p style="font-size:0.75rem;color:#888;margin:4px 0;">'
-                    f'No.{w.get("item_no", "-")}</p>',
-                    unsafe_allow_html=True,
-                )
-            with col_b:
-                reading = w.get("reading", "")
-                reading_html = (
-                    f'<span style="font-size:0.75rem;color:#aaa;margin-left:4px;">'
-                    f"({reading})</span>"
+            cat = str(w.get("category", ""))
+            is_nihongo = "みんなの日本語" in cat
+
+            # 各フィールド取得
+            no = w.get("item_no", "-")
+            word = w.get("word", "")
+            reading = w.get("reading", "")
+            phonetic = w.get("phonetic", "")
+            meaning = w.get("meaning", "")
+            meaning_zh = w.get("meaning_zh", "")
+            example = w.get("example", "")
+
+            # ── 行カード組み立て ──────────────────────
+            # No. + 単語行
+            no_html = f'<span style="font-size:0.75rem;color:#aaa;">No.{no}</span>'
+
+            if is_nihongo:
+                # みんなの日本語：単語（読み）＋ピンイン＋中国語意味＋例文
+                word_html = (
+                    f'<span style="font-weight:bold;font-size:0.95rem;">{word}</span>'
+                    f'<span style="font-size:0.8rem;color:#888;margin-left:6px;">（{reading}）</span>'
                     if reading
-                    else ""
+                    else f'<span style="font-weight:bold;font-size:0.95rem;">{word}</span>'
                 )
-                st.markdown(
-                    f'<p style="font-size:0.9rem;font-weight:bold;margin:4px 0;">'
-                    f'{w["word"]}{reading_html}</p>',
-                    unsafe_allow_html=True,
+                sub_parts = []
+                if phonetic:
+                    sub_parts.append(
+                        f'<span style="color:#0984e3;font-size:0.82rem;">🔤 {phonetic}</span>'
+                    )
+                if meaning_zh:
+                    sub_parts.append(
+                        f'<span style="color:#6c5ce7;font-size:0.82rem;">🇨🇳 {meaning_zh}</span>'
+                    )
+                if meaning:
+                    sub_parts.append(
+                        f'<span style="color:#555;font-size:0.82rem;">📝 {meaning}</span>'
+                    )
+                if example:
+                    sub_parts.append(
+                        f'<span style="color:#aaa;font-size:0.78rem;font-style:italic;">例: {example}</span>'
+                    )
+                sub_html = (
+                    f'<div style="margin-top:2px;">'
+                    + "　".join(sub_parts)
+                    + "</div>"
+                ) if sub_parts else ""
+
+            else:
+                # 英語系：単語（読み）＋発音記号＋日本語意味＋中国語意味＋例文
+                word_html = (
+                    f'<span style="font-weight:bold;font-size:0.95rem;">{word}</span>'
+                    f'<span style="font-size:0.8rem;color:#888;margin-left:6px;">（{reading}）</span>'
+                    if reading
+                    else f'<span style="font-weight:bold;font-size:0.95rem;">{word}</span>'
                 )
-            with col_c:
-                cat = str(w.get("category", ""))
-                meaning = (
-                    w.get("meaning_zh", "")
-                    if "みんなの日本語" in cat
-                    else w.get("meaning", "")
-                )
-                st.markdown(
-                    f'<p style="font-size:0.85rem;color:#555;margin:4px 0;">'
-                    f"{meaning}</p>",
-                    unsafe_allow_html=True,
-                )
+                sub_parts = []
+                if phonetic:
+                    sub_parts.append(
+                        f'<span style="color:#0984e3;font-size:0.82rem;">🔤 {phonetic}</span>'
+                    )
+                if meaning:
+                    sub_parts.append(
+                        f'<span style="color:#2d3436;font-size:0.82rem;">🇯🇵 {meaning}</span>'
+                    )
+                if meaning_zh:
+                    sub_parts.append(
+                        f'<span style="color:#6c5ce7;font-size:0.82rem;">🇨🇳 {meaning_zh}</span>'
+                    )
+                if example:
+                    sub_parts.append(
+                        f'<span style="color:#aaa;font-size:0.78rem;font-style:italic;">例: {example}</span>'
+                    )
+                sub_html = (
+                    f'<div style="margin-top:2px;">'
+                    + "　".join(sub_parts)
+                    + "</div>"
+                ) if sub_parts else ""
+
+            st.markdown(
+                f'<div style="border-left:3px solid #dfe6e9;'
+                f'padding:6px 12px;margin-bottom:4px;">'
+                f"<div>{no_html}　{word_html}</div>"
+                f"{sub_html}"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
     else:
         st.info("この範囲に単語がありません。")
 
