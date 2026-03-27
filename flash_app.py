@@ -2772,7 +2772,7 @@ def show_step1_select():
 
 
 # ==========================================================
-# ▼ STEP2: 単語一覧ページ（見て覚える）
+# 📋 STEP2: 単語一覧ページ（左：問題 / 右：個別トグルで答え表示）
 # ==========================================================
 def show_step2_list():
     words = st.session_state.get("word_list_queue", [])
@@ -2781,7 +2781,7 @@ def show_step2_list():
         st.rerun()
         return
 
-    st.markdown("## 📋 STEP 2：単語を見て覚えよう")
+    st.markdown("## 📋 STEP 2・単語を見て覚えよう")
     st.caption(
         "声に出したり、ノートに書いて覚えましょう。"
         "覚えたら下のボタンでチェックへ進んでください。"
@@ -2789,9 +2789,43 @@ def show_step2_list():
     st.markdown(f"**今日の単語：{len(words)} 語**")
     st.markdown("---")
 
+    # 答え表示状態を初期化
     for w in words:
+        key = f"show_ans_{w['id']}"
+        if key not in st.session_state:
+            st.session_state[key] = False
+
+    # ── ヘッダー行 ──────────────────────────────────────
+    col_h1, col_h2 = st.columns(2)
+    with col_h1:
+        st.markdown(
+            '<p style="font-size:0.8rem;color:#aaa;font-weight:bold;'
+            'text-align:center;margin:0;">🔤 問題</p>',
+            unsafe_allow_html=True,
+        )
+    with col_h2:
+        st.markdown(
+            '<p style="font-size:0.8rem;color:#aaa;font-weight:bold;'
+            'text-align:center;margin:0;">✅ 答え（タップで表示）</p>',
+            unsafe_allow_html=True,
+        )
+    st.divider()
+
+    # ── 単語行 ──────────────────────────────────────────
+    for w in words:
+        cat = str(w.get("category", ""))
+        is_nihongo = "みんなの日本語" in cat
         page_val = str(w.get("page_range", "")).strip()
         item_val = w.get("item_no")
+        word = w.get("word", "")
+        reading = w.get("reading", "")
+        phonetic = w.get("phonetic", "")
+        meaning = w.get("meaning", "")
+        meaning_zh = w.get("meaning_zh", "")
+        example = w.get("example", "")
+        ans_key = f"show_ans_{w['id']}"
+
+        # バッジ（ページ・番号）
         badge_parts = []
         if page_val and page_val not in ("None", "nan", ""):
             badge_parts.append(f"📄 {page_val}")
@@ -2799,43 +2833,96 @@ def show_step2_list():
             badge_parts.append(f"No.{item_val}")
         badge_str = "　".join(badge_parts)
 
-        html_parts = [
-            '<div style="border-left: 4px solid #F0C040;'
-            "background: #fffdf0;"
-            "border-radius: 0 12px 12px 0;"
-            "padding: 12px 16px;"
-            'margin-bottom: 8px;">',
-            f'<div style="font-size:11px;color:#888;margin-bottom:4px;">{badge_str}</div>',
-            f'<div style="font-size:1.3rem;font-weight:bold;color:#2d3436;">{w["word"]}</div>',
-        ]
-        if w.get("reading"):
-            html_parts.append(
-                f'<div style="font-size:0.85rem;color:#636e72;">　{w["reading"]}</div>'
-            )
-        ph = w.get("phonetic")
-        if ph and str(ph) not in ("None", "nan", ""):
-            html_parts.append(
-                '<div style="font-size:0.85rem;color:#0984e3;font-style:italic;">'
-                f"　🔤 {ph}</div>"
-            )
-        if w.get("meaning"):
-            html_parts.append(
-                '<div style="font-size:1rem;color:#2d3436;margin-top:4px;">'
-                f"　{w['meaning']}</div>"
-            )
-        mzh = w.get("meaning_zh")
-        if mzh and str(mzh) not in ("None", "nan", ""):
-            html_parts.append(
-                '<div style="font-size:0.9rem;color:#6c5ce7;margin-top:2px;">'
-                f"　🇨🇳 {mzh}</div>"
-            )
-        html_parts.append("</div>")
-        st.markdown("".join(html_parts), unsafe_allow_html=True)
+        col_q, col_a = st.columns(2)
 
-    st.markdown("---")
+        # ── 左：問題 ──────────────────────────────────
+        with col_q:
+            if is_nihongo:
+                # みんなの日本語：意味（中国語）を問題にする
+                q_main = (
+                    meaning_zh
+                    if meaning_zh and str(meaning_zh) not in ("None", "nan", "")
+                    else meaning
+                )
+                q_sub = ""
+            else:
+                # 英語系：単語を問題にする
+                q_main = word
+                q_sub = reading
+
+            st.markdown(
+                f'<div style="background:#f8f9fa;border-left:4px solid #4C6EF5;'
+                f'border-radius:0 8px 8px 0;padding:10px 14px;min-height:80px;">'
+                f'<div style="font-size:0.72rem;color:#aaa;margin-bottom:4px;">{badge_str}</div>'
+                f'<div style="font-size:1.2rem;font-weight:bold;color:#2d3436;">{q_main}</div>'
+                + (
+                    f'<div style="font-size:0.82rem;color:#888;margin-top:2px;">{q_sub}</div>'
+                    if q_sub
+                    else ""
+                )
+                + "</div>",
+                unsafe_allow_html=True,
+            )
+
+        # ── 右：答え（トグル）──────────────────────────
+        with col_a:
+            if st.session_state[ans_key]:
+                # 答えを表示
+                if is_nihongo:
+                    a_main = word
+                    a_sub_parts = []
+                    if reading:
+                        a_sub_parts.append(f"🔊 {reading}")
+                    if phonetic and str(phonetic) not in ("None", "nan", ""):
+                        a_sub_parts.append(f"🔤 {phonetic}")
+                    if meaning and str(meaning) not in ("None", "nan", ""):
+                        a_sub_parts.append(f"📝 {meaning}")
+                else:
+                    a_main = meaning
+                    a_sub_parts = []
+                    if phonetic and str(phonetic) not in ("None", "nan", ""):
+                        a_sub_parts.append(f"🔤 {phonetic}")
+                    if meaning_zh and str(meaning_zh) not in ("None", "nan", ""):
+                        a_sub_parts.append(f"🇨🇳 {meaning_zh}")
+                    if example and str(example) not in ("None", "nan", ""):
+                        a_sub_parts.append(f"📝 {example}")
+
+                a_sub_html = "".join(
+                    f'<div style="font-size:0.78rem;color:#636e72;margin-top:2px;">{p}</div>'
+                    for p in a_sub_parts
+                )
+
+                st.markdown(
+                    f'<div style="background:#f0fff4;border-left:4px solid #00b894;'
+                    f'border-radius:0 8px 8px 0;padding:10px 14px;min-height:80px;">'
+                    f'<div style="font-size:1.1rem;font-weight:bold;color:#00b894;">{a_main}</div>'
+                    f"{a_sub_html}"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+                if st.button("🙈 隠す", key=f"hide_{w['id']}", use_container_width=True):
+                    st.session_state[ans_key] = False
+                    st.rerun()
+            else:
+                # 答えを隠す
+                st.markdown(
+                    '<div style="background:#dfe6e9;border-radius:8px;'
+                    "padding:10px 14px;min-height:80px;"
+                    'display:flex;align-items:center;justify-content:center;">'
+                    '<span style="color:#b2bec3;font-size:0.9rem;">？？？</span>'
+                    "</div>",
+                    unsafe_allow_html=True,
+                )
+                if st.button("👁 答えを見る", key=f"show_{w['id']}", use_container_width=True):
+                    st.session_state[ans_key] = True
+                    st.rerun()
+
+        st.divider()
+
+    # ── ナビゲーション ───────────────────────────────────
     col_back, col_next = st.columns([1, 3])
     with col_back:
-        if st.button("← 単語を選び直す", key="step2_back"):
+        if st.button("← 単語を選び直す", key="step2_back", use_container_width=True):
             st.session_state.flash_step = "select"
             st.rerun()
     with col_next:
