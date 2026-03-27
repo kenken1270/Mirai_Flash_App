@@ -2664,24 +2664,12 @@ def show_step1_select():
         pg_ids = [w["id"] for w in pg_words]
         pg_selected = count_selected(pg_ids)
 
-        # expanderのラベルに選択数を表示
-        expander_label = (
-            f"📄 {pg_label}　"
-            f"（{pg_selected} / {len(pg_words)} 語 選択中）"
-        )
-
-        with st.expander(expander_label, expanded=False):
-            # このページの操作ボタン
-            col_pg_all, col_pg_none, _ = st.columns([1.5, 1.5, 3])
-            with col_pg_all:
-                if st.button(
-                    "☑ このページ全選択",
-                    key=f"pg_all_{pg_idx}",
-                    use_container_width=True,
-                ):
-                    for wid in pg_ids:
-                        st.session_state[f"chk_{wid}"] = True
-                    st.rerun()
+        with st.expander(
+            f"📄 {pg_label} ／ {pg_selected}/{len(pg_words)}語",
+            expanded=False,
+        ):
+            # このページ解除ボタンのみ（全選択は削除）
+            col_pg_none, _ = st.columns([1.5, 4.5])
             with col_pg_none:
                 if st.button(
                     "☐ このページ解除",
@@ -2692,21 +2680,9 @@ def show_step1_select():
                         st.session_state[f"chk_{wid}"] = False
                     st.rerun()
 
-            st.divider()
-
-            # ヘッダー行
-            _, h1, h2, h3 = st.columns([0.5, 1, 3, 2])
-            with h1:
-                st.caption("No.")
-            with h2:
-                st.caption("単語")
-            with h3:
-                st.caption("意味")
-            st.divider()
-
-            # 単語行
+            # 単語行（余白を詰める）
             for w in pg_words:
-                c0, c1, c2, c3 = st.columns([0.5, 1, 3, 2])
+                c0, c1, c2, c3 = st.columns([0.4, 0.8, 2.5, 2.5])
                 with c0:
                     st.checkbox(
                         "",
@@ -2714,17 +2690,34 @@ def show_step1_select():
                         label_visibility="collapsed",
                     )
                 with c1:
-                    st.caption(f"No.{w.get('item_no', '-')}")
+                    st.markdown(
+                        f'<p style="font-size:0.75rem;color:#888;margin:6px 0 0 0;">'
+                        f'No.{w.get("item_no", "-")}</p>',
+                        unsafe_allow_html=True,
+                    )
                 with c2:
-                    st.markdown(f"**{w['word']}**")
-                    if w.get("reading"):
-                        st.caption(w["reading"])
+                    reading = w.get("reading", "")
+                    reading_html = (
+                        f'<span style="font-size:0.75rem;color:#aaa;margin-left:4px;">({reading})</span>'
+                        if reading
+                        else ""
+                    )
+                    st.markdown(
+                        f'<p style="font-size:0.95rem;font-weight:bold;margin:4px 0 0 0;">'
+                        f'{w["word"]}{reading_html}</p>',
+                        unsafe_allow_html=True,
+                    )
                 with c3:
                     cat = str(w.get("category", ""))
-                    if "みんなの日本語" in cat:
-                        st.caption(w.get("meaning_zh", ""))
-                    else:
-                        st.caption(w.get("meaning", ""))
+                    meaning = (
+                        w.get("meaning_zh", "")
+                        if "みんなの日本語" in cat
+                        else w.get("meaning", "")
+                    )
+                    st.markdown(
+                        f'<p style="font-size:0.85rem;color:#555;margin:4px 0 0 0;">{meaning}</p>',
+                        unsafe_allow_html=True,
+                    )
 
     # ════════════════════════════════════════════
     # 【下部】完了ボタン（再掲）
