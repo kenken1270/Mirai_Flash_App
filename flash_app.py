@@ -692,7 +692,7 @@ def render_card_front(card: dict, lang: str = "ja"):
 """, unsafe_allow_html=True)
 
     else:
-        word    = card.get("word", "")
+        word    = card.get("lang1", card.get("word", ""))
         reading = card.get("reading", "")
         reading_html = f'<div style="font-size:1rem;color:#888;margin-top:0.4rem;">{reading}</div>' \
                        if reading and reading != word else ""
@@ -717,7 +717,7 @@ def render_card_back(card: dict, lang: str = "ja"):
     category = str(card.get("category", ""))
 
     if "みんなの日本語" in category:
-        word    = card.get("word", "")
+        word    = card.get("lang1", card.get("word", ""))
         reading = card.get("reading", "")
         pos     = card.get("meaning_zh", "")   # 品詞〈名〉〈動I〉
         accent  = card.get("phonetic", "")     # アクセント番号
@@ -1375,7 +1375,7 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             new_ef, new_iv, new_rp, next_date = sm2_update(q, ef, iv, rp)
             save_review(username, cid, q, new_ef, new_iv, new_rp, next_date)
             st.session_state["flash_session_results"].append({
-                "word": card["word"], "quality": q, "next_review": next_date
+                "word": card.get("lang1", card.get("word", "")), "quality": q, "next_review": next_date
             })
             st.session_state["flash_index"] += 1
             st.session_state["flash_show_answer"] = False
@@ -1604,11 +1604,11 @@ def generate_choices(correct_card, all_cards, n=4):
     category = str(correct_card.get("category", ""))
     if "みんなの日本語" in category:
         # 問題は中国語(meaning)、正解は日本語(word)
-        correct_answer = correct_card["word"]
+        correct_answer = correct_card.get("lang1", correct_card.get("word", ""))
         others = [
-            c["word"] for c in all_cards
+            c.get("lang1", c.get("word", "")) for c in all_cards
             if c["id"] != correct_card["id"]
-            and c["word"] != correct_answer
+            and c.get("lang1", c.get("word", "")) != correct_answer
         ]
     else:
         # 問題は英語(word)、正解は日本語訳(meaning)
@@ -1854,7 +1854,7 @@ def show_time_attack(username):
     choices = st.session_state["ta_choices"]
     category = str(card.get("category", ""))
     if "みんなの日本語" in category:
-        correct_meaning = card["word"]   # 日本語が正解
+        correct_meaning = card.get("lang1", card.get("word", ""))   # 日本語が正解
     else:
         correct_meaning = card["meaning"]  # 日本語訳が正解
 
@@ -1923,7 +1923,7 @@ def show_time_attack(username):
                     st.session_state["ta_selected_idx"] = i
                     score = max(0, int(remaining * 10)) if is_correct else 0
                     st.session_state["flash_time_scores"].append({
-                        "word": card["word"],
+                        "word": card.get("lang1", card.get("word", "")),
                         "meaning": correct_meaning,
                         "chosen": choice,
                         "time": round(elapsed, 1),
@@ -1940,7 +1940,7 @@ def show_time_attack(username):
         st.session_state["ta_correct"] = False
         st.session_state["ta_selected_idx"] = -1
         st.session_state["flash_time_scores"].append({
-            "word": card["word"],
+            "word": card.get("lang1", card.get("word", "")),
             "meaning": correct_meaning,
             "chosen": "（時間切れ）",
             "time": 10.0,
@@ -2046,7 +2046,7 @@ def show_ranking():
             f'<div style="display:flex; justify-content:space-between;'
             f'padding:8px 12px; background:{color}22; border-radius:10px;'
             f'margin:4px 0; font-size:0.9rem;">'
-            f'<span>{icon} <b>{s["word"]}</b> — {s["meaning"]}</span>'
+            f'<span>{icon} <b>{s.get("lang1", s.get("word", ""))}</b> — {s.get("lang2", s.get("meaning", ""))}</span>'
             f'<span style="color:{color}; font-weight:bold;">'
             f'{s["score"]}pts ({s["time"]}秒)</span></div>',
             unsafe_allow_html=True
@@ -2142,7 +2142,7 @@ def show_word_list():
 
         if is_mnn:
             meaning_zh = card.get("meaning", "")    # 中国語（問題）
-            word       = card.get("word", "")        # 日本語（答え）
+            word       = card.get("lang1", card.get("word", ""))        # 日本語（答え）
             reading    = card.get("reading", "")
             accent     = card.get("phonetic", "")
             reading_str = f"{reading}　{accent}" if accent else reading
@@ -2172,7 +2172,7 @@ def show_word_list():
                 unsafe_allow_html=True
             )
         else:
-            word     = card.get("word", "")
+            word     = card.get("lang1", card.get("word", ""))
             meaning  = card.get("meaning", "")
             phonetic = card.get("phonetic", "")
             reading  = card.get("reading", "")
@@ -2359,7 +2359,7 @@ def show_result():
         if covered:
             pills = " ".join(
                 [
-                    f'<span class="word-pill" style="background:#00b09b;">{r["word"]}</span>'
+                    f'<span class="word-pill" style="background:#00b09b;">{r.get("lang1", r.get("word", ""))}</span>'
                     for r in covered
                 ]
             )
@@ -2373,11 +2373,11 @@ def show_result():
         if retry:
             pills = " ".join(
                 [
-                    f'<span class="word-pill" style="background:#ffa500;">{r["word"]}</span>'
+                    f'<span class="word-pill" style="background:#ffa500;">{r.get("lang1", r.get("word", ""))}</span>'
                     for r in ok
                 ]
                 + [
-                    f'<span class="word-pill" style="background:#ff4b4b;">{r["word"]}</span>'
+                    f'<span class="word-pill" style="background:#ff4b4b;">{r.get("lang1", r.get("word", ""))}</span>'
                     for r in ng
                 ]
             )
@@ -2536,11 +2536,11 @@ def show_result():
             st.rerun()
     with b2:
         if st.button(T("retry_btn"), use_container_width=True):
-            ng_words = [r["word"] for r in ng + ok]
+            ng_words = [r.get("lang1", r.get("word", "")) for r in ng + ok]
             selected_set_id = st.session_state.get("selected_set_id")
             if selected_set_id:
                 all_cards = load_flashcards_by_set(selected_set_id)
-                retry_queue = [c for c in all_cards if c["word"] in ng_words]
+                retry_queue = [c for c in all_cards if c.get("lang1", c.get("word", "")) in ng_words]
                 if retry_queue:
                     random.shuffle(retry_queue)
                     st.session_state["flash_queue"] = retry_queue
