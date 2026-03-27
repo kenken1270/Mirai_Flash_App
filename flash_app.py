@@ -2658,42 +2658,41 @@ def show_step1_select():
             unsafe_allow_html=True,
         )
 
-        # 選択された単語のプレビュー（最大5件）
-        st.markdown("")
-        with st.expander("📋 選択された単語を確認する", expanded=False):
-            for w in selected_words[:5]:
-                col_a, col_b, col_c = st.columns([1, 2.5, 2.5])
-                with col_a:
-                    st.markdown(
-                        f'<p style="font-size:0.75rem;color:#888;margin:4px 0;">'
-                        f'No.{w.get("item_no", "-")}</p>',
-                        unsafe_allow_html=True,
-                    )
-                with col_b:
-                    reading = w.get("reading", "")
-                    reading_html = (
-                        f'<span style="font-size:0.75rem;color:#aaa;margin-left:4px;">'
-                        f"({reading})</span>"
-                        if reading
-                        else ""
-                    )
-                    st.markdown(
-                        f'<p style="font-size:0.9rem;font-weight:bold;margin:4px 0;">'
-                        f'{w["word"]}{reading_html}</p>',
-                        unsafe_allow_html=True,
-                    )
-                with col_c:
-                    cat = str(w.get("category", ""))
-                    meaning = (
-                        w.get("meaning_zh", "")
-                        if "みんなの日本語" in cat
-                        else w.get("meaning", "")
-                    )
-                    st.markdown(
-                        f'<p style="font-size:0.85rem;color:#555;margin:4px 0;">'
-                        f"{meaning}</p>",
-                        unsafe_allow_html=True,
-                    )
+        # 選択された単語を全表示
+        st.markdown("**📋 選択された単語：**")
+        for w in selected_words:
+            col_a, col_b, col_c = st.columns([1, 2.5, 2.5])
+            with col_a:
+                st.markdown(
+                    f'<p style="font-size:0.75rem;color:#888;margin:4px 0;">'
+                    f'No.{w.get("item_no", "-")}</p>',
+                    unsafe_allow_html=True,
+                )
+            with col_b:
+                reading = w.get("reading", "")
+                reading_html = (
+                    f'<span style="font-size:0.75rem;color:#aaa;margin-left:4px;">'
+                    f"({reading})</span>"
+                    if reading
+                    else ""
+                )
+                st.markdown(
+                    f'<p style="font-size:0.9rem;font-weight:bold;margin:4px 0;">'
+                    f'{w["word"]}{reading_html}</p>',
+                    unsafe_allow_html=True,
+                )
+            with col_c:
+                cat = str(w.get("category", ""))
+                meaning = (
+                    w.get("meaning_zh", "")
+                    if "みんなの日本語" in cat
+                    else w.get("meaning", "")
+                )
+                st.markdown(
+                    f'<p style="font-size:0.85rem;color:#555;margin:4px 0;">'
+                    f"{meaning}</p>",
+                    unsafe_allow_html=True,
+                )
     else:
         st.info("この範囲に単語がありません。")
 
