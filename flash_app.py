@@ -2739,31 +2739,13 @@ def show_step2_list():
             st.session_state[ans_key] = False
 
     def nav_row(key_prefix: str):
-        col_back, col_next = st.columns([1, 3])
-        with col_back:
-            if st.button(
-                "← 単語を選び直す",
-                key=f"{key_prefix}_back",
-                use_container_width=True,
-            ):
-                st.session_state.flash_step = "select"
-                st.rerun()
-        with col_next:
-            if st.button(
-                "✅ 覚えた！単語チェックをはじめる →",
-                type="primary",
-                use_container_width=True,
-                key=f"{key_prefix}_next",
-            ):
-                st.session_state["flash_queue"] = list(
-                    st.session_state["word_list_queue"]
-                )
-                st.session_state["flash_index"] = 0
-                st.session_state["flash_session_results"] = []
-                st.session_state["flash_show_answer"] = False
-                st.session_state["flash_mode"] = "study"
-                st.session_state.flash_step = "study"
-                st.rerun()
+        if st.button(
+            "← 単語を選び直す",
+            key=f"{key_prefix}_back",
+            use_container_width=True,
+        ):
+            st.session_state.flash_step = "select"
+            st.rerun()
 
     st.markdown("## 📋 STEP 2・単語を見て覚えよう")
     st.markdown(f"**今日の単語：{len(words)} 語**")
@@ -2861,10 +2843,10 @@ def show_step2_list():
 # ─────────────────────────────
 flash_step = st.session_state.get("flash_step", "home")
 
-if flash_step == "select":
-    show_step1_select()
-elif flash_step == "list":
+if flash_step == "list":
     show_step2_list()
+elif flash_step == "select":
+    show_step1_select()
 elif st.session_state.get("flash_mode") == "time_attack":
     show_time_attack(username)
 elif st.session_state.get("flash_mode") == "result":
