@@ -1,4 +1,4 @@
-﻿# flash_app.py 窶・譛ｪ譚･蝪ｾ 蜊倩ｪ樊囓險倥い繝励Μ・・M-2蠢伜唆譖ｲ邱夲ｼ画隼險ら沿
+# flash_app.py — 未来塾 単語暗記アプリ（SM-2忘却曲線）改訂版
 import streamlit as st
 import random
 import pandas as pd
@@ -9,297 +9,297 @@ from datetime import date, timedelta
 
 TRANSLATIONS = {
     "ja": {
-        "app_title": "当 蜊倩ｪ樊囓險倥い繝励Μ | 譛ｪ譚･蝪ｾ",
-        "select_user": "繝ｦ繝ｼ繧ｶ繝ｼ繧帝∈繧薙〒縺上□縺輔＞",
-        "start": "繧ｹ繧ｿ繝ｼ繝茨ｼ・,
-        "no_user": "繝ｦ繝ｼ繧ｶ繝ｼ縺檎匳骭ｲ縺輔ｌ縺ｦ縺・∪縺帙ｓ縲らｮ｡逅・・↓騾｣邨｡縺励※縺上□縺輔＞縲・,
-        "select_prompt": "--- 驕ｸ繧薙〒縺上□縺輔＞ ---",
-        "select_error": "繝ｦ繝ｼ繧ｶ繝ｼ繧帝∈繧薙〒縺上□縺輔＞",
-        "welcome": "縺輔ｓ・∽ｻ頑律繧ゅ＞縺｣縺励ｇ縺ｫ隕壹∴繧医≧・・,
-        "streak_msg": "譌･騾｣邯壼ｭｦ鄙剃ｸｭ・√☆縺斐＞・・,
-        "streak_zero": "当 縺輔≠縲∽ｻ頑律縺九ｉ蟋九ａ繧医≧・・,
-        "select_material": "答 謨呎攝繧帝∈縺ｶ",
-        "no_material": "謨呎攝縺後∪縺逋ｻ骭ｲ縺輔ｌ縺ｦ縺・∪縺帙ｓ縲らｮ｡逅・・↓騾｣邨｡縺励※縺上□縺輔＞縲・,
-        "material_label": "謨呎攝",
-        "no_cards_set": "縺薙・謨呎攝縺ｫ縺ｯ縺ｾ縺蜊倩ｪ槭′逋ｻ骭ｲ縺輔ｌ縺ｦ縺・∪縺帙ｓ縲・,
-        "page_range": "当 繝壹・繧ｸ遽・峇:",
-        "item_range": "箸",
-        "progress_caption": "譫壹け繝ｪ繧｢",
-        "today_task": "統 莉頑律繧・ｋ縺薙→",
-        "badge_new": "・ 譁ｰ縺励＞蜊倩ｪ・,
-        "badge_due": "煤 蠕ｩ鄙偵′蠢・ｦ・,
-        "cards": "譫・,
-        "start_study": "笨ｨ 莉頑律縺ｮ蟄ｦ鄙偵ｒ縺ｯ縺倥ａ繧具ｼ・,
-        "all_done": "脂 莉頑律縺ｮ蛻・・蜈ｨ驛ｨ邨ゅｏ縺｣縺滂ｼ√∪縺滓・譌･・・,
-        "more_study": "検 繧ゅ▲縺ｨ繧・ｊ縺溘＞莠ｺ縺ｯ縺薙％縺九ｉ・・,
-        "current_title": "迴ｾ蝨ｨ縺ｮ遘ｰ蜿ｷ",
-        "total_xp_lbl": "邏ｯ險・,
-        "weak_btn": "煤 闍ｦ謇九□縺大ｾｩ鄙箪n\n遲斐∴縺悟・縺ｪ縺九▲縺歃n蜊倩ｪ槭ｒ繧ゅ≧荳蠎ｦ",
-        "new_btn": "噫 蜈亥叙繧翫メ繝｣繝ｬ繝ｳ繧ｸ\n\n縺ｾ縺隕九※縺・↑縺Ыn譁ｰ縺励＞蜊倩ｪ槭∈",
-        "all_btn": "識 蜈ｨ驛ｨ騾壹＠蠕ｩ鄙箪n\n謨呎攝縺ｮ蜈ｨ蜊倩ｪ槭ｒ\n繧ｷ繝｣繝・ヵ繝ｫ縺ｧ",
-        "ta_btn": "笞｡ 繧ｿ繧､繝繧｢繧ｿ繝・け・―n\n10遘偵〒遲斐∴繧搾ｼ―n繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ縺ｫ謖第姶",
-        "logout": "坎 繝ｭ繧ｰ繧｢繧ｦ繝・,
-        "think_hint": "眺 諢丞袖繧帝ｭ縺ｫ諤昴＞豬ｮ縺九∋縺ｦ縺九ｉ謚ｼ縺励※縺ｭ",
-        "show_answer": "操 遲斐∴繧定ｦ九ｋ",
-        "reading_label": "矧 隱ｭ縺ｿ・・,
-        "reading_jp_lbl": "隱ｭ縺ｿ・・,
-        "phonetic_label": "筈 逋ｺ髻ｳ・・,
-        "zh_meaning_label": "・・ 荳ｭ譁・ｼ・,
-        "example_lbl": "統 萓区枚: ",
-        "how_much": "縺ｩ縺ｮ縺上ｉ縺・ｦ壹∴縺ｦ縺・◆・・,
-        "q0_btn": "笶圭n蜈ｨ辟ｶ繝繝｡\n\n遲斐∴縺圭n蜃ｺ縺ｦ縺薙↑縺九▲縺・,
-        "q3_btn": "噺\n縺・▲縺吶ｉ\n\n諤昴＞蜃ｺ縺吶・縺ｫ\n譎る俣縺後°縺九▲縺・,
-        "q4_btn": "泙\n縺縺・◆縺Ыn\n縺吶＄蜃ｺ縺溘′\n蟆代＠荳榊ｮ峨□縺｣縺・,
-        "q5_btn": "箝申n繝舌ャ繝√Μ・―n\n荳迸ｬ縺ｧ\n螳悟・縺ｫ閾ｪ菫｡縺ゅｊ",
-        "next_day": "谺｡蝗・ 譏取律",
-        "next_6d": "谺｡蝗・ 6譌･蠕・,
-        "next_weeks": "谺｡蝗・ 謨ｰ騾ｱ髢灘ｾ・,
-        "next_month": "谺｡蝗・ 1繝ｶ譛井ｻ･荳・,
-        "legend_bad": "笶・蜈ｨ辟ｶ繝繝｡",
-        "legend_good": "箝・繝舌ャ繝√Μ・・,
-        "result_title": "脂 莉頑律縺ｮ蟄ｦ鄙貞ｮ御ｺ・ｼ・,
-        "perfect_lbl": "識 繝舌ャ繝√Μ",
-        "good_lbl": "泙 縺縺・◆縺・,
-        "ok_lbl": "噺 縺・▲縺吶ｉ",
-        "ng_lbl": "笶・隕∝ｾｩ鄙・,
-        "lv_label": "式 邏ｯ險・,
-        "next_lv": "谺｡縺ｮ繝ｬ繝吶Ν縺ｾ縺ｧ",
-        "words_done": "笨・隕壹∴繧峨ｌ縺溷腰隱・,
-        "words_retry": "煤 谺｡蝗槭∪縺滓倦謌ｦ",
-        "ng_notice_tail": "縺ｯ譏取律縺ｾ縺溷・縺ｦ縺阪∪縺吶ょ､ｧ荳亥､ｫ縲∫ｹｰ繧願ｿ斐☆縺薙→縺ｧ蠢・★隕壹∴繧峨ｌ縺ｾ縺呻ｼ・,
-        "home_btn": "匠 繝帙・繝縺ｸ謌ｻ繧・,
-        "retry_btn": "煤 繧ゅ≧荳蠎ｦ繝√Ε繝ｬ繝ｳ繧ｸ",
-        "graph_title": "嶋 縺ゅ↑縺溘・謌宣聞繧ｰ繝ｩ繝・,
-        "tab_xp": "笞｡ XP謗ｨ遘ｻ",
-        "tab_cards": "答 蟄ｦ鄙呈椢謨ｰ",
-        "tab_acc": "識 豁｣隗｣邇・,
-        "lang_switch": "・・ 蛻・困荳ｭ譁・,
-        "nickname_label": "式 繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ繝阪・繝:",
-        "nick_title": "### 式 繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ逕ｨ繝阪・繝繧呈ｱｺ繧√ｈ縺・ｼ・,
-        "nick_box1": "銅 縺ｪ縺ｾ縺医ｒ 縺・ｌ縺ｦ縺上□縺輔＞",
-        "nick_box2": "繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ縺ｫ陦ｨ遉ｺ縺輔ｌ繧句錐蜑阪〒縺吶よ悽蜷阪・菴ｿ繧上↑縺・〒縺ｭ・・,
-        "nick_field": "繝九ャ繧ｯ繝阪・繝・・縲・譁・ｭ暦ｼ・,
-        "nick_placeholder": "萓・ 縺溘ｓ縺斐・繧ｹ繧ｿ繝ｼ",
-        "nick_submit": "笞｡ 縺薙ｌ縺ｧ豎ｺ螳夲ｼ・,
-        "nick_err": "2譁・ｭ嶺ｻ･荳翫〒蜈･蜉帙＠縺ｦ縺上□縺輔＞",
-        "nick_ok": "脂縲鶏nick}縲阪↓豎ｺ螳夲ｼ√Λ繝ｳ繧ｭ繝ｳ繧ｰ縺ｫ蜿よ姶縺ｧ縺阪∪縺呻ｼ・,
-        "nick_caption": "式 繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ繝阪・繝: **{nick}**縲[螟画峩縺吶ｋ蝣ｴ蜷医・繝ｭ繧ｰ繧｢繧ｦ繝亥ｾ後↓險ｭ螳咯",
-        "weak_ok": "脂 闍ｦ謇九↑蜊倩ｪ槭・縺ゅｊ縺ｾ縺帙ｓ・・,
-        "new_ok": "醇 蜈ｨ蜊倩ｪ槫宛隕・ｼ√☆縺斐＞・・,
-        "daily_7": "検 7譌･騾｣邯夐＃謌撰ｼ々Pﾃ・繝懊・繝翫せ迯ｲ蠕嶺ｸｭ・・,
-        "daily_3": "櫨 {s}譌･騾｣邯夲ｼ√≠縺ｨ{r}譌･縺ｧ7譌･騾｣邯壹・繝ｼ繝翫せ・・,
-        "daily_0": "庁 豈取律邯壹￠繧九→7譌･騾｣邯壹・繝ｼ繝翫せXPﾃ・縺瑚ｧ｣謾ｾ縺輔ｌ縺ｾ縺呻ｼ・,
-        "interrupt_btn": "竢ｸ・・縺・▲縺溘ｓ荳ｭ譁ｭ縺励※繝帙・繝縺ｸ謌ｻ繧・,
-        "progress_n": "{i} / {t} 譫夂岼",
-        "ta_question": "眺 豁｣縺励＞諢丞袖縺ｯ縺ｩ繧鯉ｼ・,
-        "ta_tap": "燥 豁｣縺励＞諢丞袖繧偵ち繝・・・・,
-        "ta_next": "筐｡・・谺｡縺ｮ蝠城｡後∈",
-        "rank_title": "醇 縺ｿ繧薙↑縺ｮ繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ・・OP10・・,
-        "rank_empty": "縺ｾ縺險倬鹸縺後≠繧翫∪縺帙ｓ縲ゅ≠縺ｪ縺溘′1菴阪↓縺ｪ繧阪≧・・,
-        "ta_again": "煤 繧ゅ≧荳蠎ｦ繧ｿ繧､繝繧｢繧ｿ繝・け",
-        "score_save_err": "繧ｹ繧ｳ繧｢菫晏ｭ倥お繝ｩ繝ｼ: ",
-        "graph_need_days": "投 繧ｰ繝ｩ繝輔・2譌･莉･荳雁ｭｦ鄙偵☆繧九→陦ｨ遉ｺ縺輔ｌ縺ｾ縺呻ｼ∵・譌･繧よ擂縺ｦ縺ｭ 櫨",
-        "acc_no_data": "豁｣隗｣邇・ョ繝ｼ繧ｿ縺後≠繧翫∪縺帙ｓ",
-        "study_days_caption": "櫨 驕主悉30譌･縺ｧ **{n}譌･** 蟄ｦ鄙偵＠縺ｾ縺励◆・・,
-        "max_day_caption": "遵 譛螟壼ｭｦ鄙呈律: **{d}** ({n}譫・",
-        "avg_acc_caption": "投 驕主悉30譌･縺ｮ蟷ｳ蝮・ｭ｣隗｣邇・ **{a:.1f}%**",
-        "target_80": "逶ｮ讓・80%",
-        "result_hero_100_title": "醇 繝代・繝輔ぉ繧ｯ繝茨ｼ・ｼ・,
-        "result_hero_100_sub": "蜈ｨ蝠乗ｭ｣隗｣・∝ｮ檎挑縺ｪ蟄ｦ鄙偵〒縺励◆・・,
-        "result_hero_80_title": "脂 邏譎ｴ繧峨＠縺・ｼ・,
-        "result_hero_80_sub": "豁｣隗｣邇・{a:.0f}% 窶・縺薙・隱ｿ蟄舌〒邯壹￠繧医≧・・,
-        "result_hero_50_title": "潮 繧医￥鬆大ｼｵ縺｣縺滂ｼ・,
-        "result_hero_50_sub": "豁｣隗｣邇・{a:.0f}% 窶・蠕ｩ鄙偵〒蟾ｮ繧偵▽縺代ｈ縺・ｼ・,
-        "result_hero_low_title": "当 莉頑律縺ｯ縺薙％縺九ｉ・・,
-        "result_hero_low_sub": "豁｣隗｣邇・{a:.0f}% 窶・郢ｰ繧願ｿ斐○縺ｰ蠢・★隕壹∴繧峨ｌ繧具ｼ・,
-        "xp_get": "笞｡ +{xp} XP 繧ｲ繝・ヨ・・,
-        "summary_title": "### 搭 莉頑律縺ｮ蜊倩ｪ槭∪縺ｨ繧・,
-        "no_words_yet": "縺ｾ縺縺ゅｊ縺ｾ縺帙ｓ",
-        "none_perfect": "縺ｪ縺暦ｼ∝ｮ檎挑縺ｧ縺・脂",
-        "chart_cum_xp_name": "邏ｯ險・P",
-        "chart_cum_xp_title": "邏ｯ險・P縺ｮ謗ｨ遘ｻ・磯℃蜴ｻ30譌･・・,
-        "chart_date": "譌･莉・,
-        "chart_daily_cards_name": "蟄ｦ鄙呈椢謨ｰ",
-        "chart_daily_cards_title": "譌･蛻･ 蟄ｦ鄙呈椢謨ｰ・磯℃蜴ｻ30譌･・・,
-        "chart_count_axis": "譫壽焚",
-        "chart_acc_name": "豁｣隗｣邇・,
-        "chart_acc_title": "譌･蛻･ 豁｣隗｣邇・ｼ磯℃蜴ｻ30譌･・・,
-        "chart_acc_yaxis": "豁｣隗｣邇・(%)",
-        "ta_header": "笞｡ 繧ｿ繧､繝繧｢繧ｿ繝・け {i}/{t}",
-        "ta_reading": "隱ｭ縺ｿ: {r}",
-        "ta_correct": "笨・豁｣隗｣・・,
-        "ta_wrong": "笶・荳肴ｭ｣隗｣",
-        "ta_seconds": "竢ｱ {s:.1f}遘・,
-        "ta_correct_meaning": "豁｣隗｣: <b>{m}</b>",
-        "rank_ta_result": "笞｡ 繧ｿ繧､繝繧｢繧ｿ繝・け邨先棡",
-        "rank_score_line": "{c}/{t}蝠乗ｭ｣隗｣",
-        "rank_record_as": "式 {name} 縺ｨ縺励※險倬鹸",
-        "rank_word_times": "### 竢ｱ・・蜊倩ｪ槫挨繧ｿ繧､繝",
-        "rank_you": " 争 縺ゅ↑縺・,
-        "rank_q_suffix": "蝠・,
-        "word_list_title": "搭 莉頑律縺ｮ蜊倩ｪ槭Μ繧ｹ繝・,
-        "word_list_sub": "縺ｾ縺壹％縺ｮ蜊倩ｪ槭ｒ隕壹∴縺ｦ縺九ｉ縲√メ繧ｧ繝・け縺ｫ騾ｲ繧ゅ≧・・,
+        "app_title": "📖 単語暗記アプリ | 未来塾",
+        "select_user": "ユーザーを選んでください",
+        "start": "スタート！",
+        "no_user": "ユーザーが登録されていません。管理者に連絡してください。",
+        "select_prompt": "--- 選んでください ---",
+        "select_error": "ユーザーを選んでください",
+        "welcome": "さん！今日もいっしょに覚えよう！",
+        "streak_msg": "日連続学習中！すごい！",
+        "streak_zero": "📖 さあ、今日から始めよう！",
+        "select_material": "📚 教材を選ぶ",
+        "no_material": "教材がまだ登録されていません。管理者に連絡してください。",
+        "material_label": "教材",
+        "no_cards_set": "この教材にはまだ単語が登録されていません。",
+        "page_range": "📖 ページ範囲:",
+        "item_range": "🔢",
+        "progress_caption": "枚クリア",
+        "today_task": "📝 今日やること",
+        "badge_new": "🆕 新しい単語",
+        "badge_due": "🔁 復習が必要",
+        "cards": "枚",
+        "start_study": "✨ 今日の学習をはじめる！",
+        "all_done": "🎉 今日の分は全部終わった！また明日！",
+        "more_study": "🌟 もっとやりたい人はここから！",
+        "current_title": "現在の称号",
+        "total_xp_lbl": "累計",
+        "weak_btn": "🔁 苦手だけ復習\n\n答えが出なかった\n単語をもう一度",
+        "new_btn": "🚀 先取りチャレンジ\n\nまだ見ていない\n新しい単語へ",
+        "all_btn": "🎯 全部通し復習\n\n教材の全単語を\nシャッフルで",
+        "ta_btn": "⚡ タイムアタック！\n\n10秒で答えろ！\nランキングに挑戦",
+        "logout": "🚪 ログアウト",
+        "think_hint": "💭 意味を頭に思い浮かべてから押してね",
+        "show_answer": "👀 答えを見る",
+        "reading_label": "🔊 読み：",
+        "reading_jp_lbl": "読み：",
+        "phonetic_label": "🔤 発音：",
+        "zh_meaning_label": "🇨🇳 中文：",
+        "example_lbl": "📝 例文: ",
+        "how_much": "どのくらい覚えていた？",
+        "q0_btn": "❌\n全然ダメ\n\n答えが\n出てこなかった",
+        "q3_btn": "🔶\nうっすら\n\n思い出すのに\n時間がかかった",
+        "q4_btn": "🟢\nだいたい\n\nすぐ出たが\n少し不安だった",
+        "q5_btn": "⭐\nバッチリ！\n\n一瞬で\n完全に自信あり",
+        "next_day": "次回: 明日",
+        "next_6d": "次回: 6日後",
+        "next_weeks": "次回: 数週間後",
+        "next_month": "次回: 1ヶ月以上",
+        "legend_bad": "❌ 全然ダメ",
+        "legend_good": "⭐ バッチリ！",
+        "result_title": "🎉 今日の学習完了！",
+        "perfect_lbl": "🎯 バッチリ",
+        "good_lbl": "🟢 だいたい",
+        "ok_lbl": "🔶 うっすら",
+        "ng_lbl": "❌ 要復習",
+        "lv_label": "🎮 累計",
+        "next_lv": "次のレベルまで",
+        "words_done": "✅ 覚えられた単語",
+        "words_retry": "🔁 次回また挑戦",
+        "ng_notice_tail": "は明日また出てきます。大丈夫、繰り返すことで必ず覚えられます！",
+        "home_btn": "🏠 ホームへ戻る",
+        "retry_btn": "🔁 もう一度チャレンジ",
+        "graph_title": "📈 あなたの成長グラフ",
+        "tab_xp": "⚡ XP推移",
+        "tab_cards": "📚 学習枚数",
+        "tab_acc": "🎯 正解率",
+        "lang_switch": "🇨🇳 切换中文",
+        "nickname_label": "🎮 ランキングネーム:",
+        "nick_title": "### 🎮 ランキング用ネームを決めよう！",
+        "nick_box1": "📺 なまえを いれてください",
+        "nick_box2": "ランキングに表示される名前です。本名は使わないでね！",
+        "nick_field": "ニックネーム（3〜8文字）",
+        "nick_placeholder": "例: たんごマスター",
+        "nick_submit": "⚡ これで決定！",
+        "nick_err": "2文字以上で入力してください",
+        "nick_ok": "🎉「{nick}」に決定！ランキングに参戦できます！",
+        "nick_caption": "🎮 ランキングネーム: **{nick}**　[変更する場合はログアウト後に設定]",
+        "weak_ok": "🎉 苦手な単語はありません！",
+        "new_ok": "🏆 全単語制覇！すごい！",
+        "daily_7": "🌟 7日連続達成！XP×2ボーナス獲得中！",
+        "daily_3": "🔥 {s}日連続！あと{r}日で7日連続ボーナス！",
+        "daily_0": "💡 毎日続けると7日連続ボーナスXP×2が解放されます！",
+        "interrupt_btn": "⏸️ いったん中断してホームへ戻る",
+        "progress_n": "{i} / {t} 枚目",
+        "ta_question": "💭 正しい意味はどれ？",
+        "ta_tap": "👇 正しい意味をタップ！",
+        "ta_next": "➡️ 次の問題へ",
+        "rank_title": "🏆 みんなのランキング（TOP10）",
+        "rank_empty": "まだ記録がありません。あなたが1位になろう！",
+        "ta_again": "🔁 もう一度タイムアタック",
+        "score_save_err": "スコア保存エラー: ",
+        "graph_need_days": "📊 グラフは2日以上学習すると表示されます！明日も来てね 🔥",
+        "acc_no_data": "正解率データがありません",
+        "study_days_caption": "🔥 過去30日で **{n}日** 学習しました！",
+        "max_day_caption": "🏅 最多学習日: **{d}** ({n}枚)",
+        "avg_acc_caption": "📊 過去30日の平均正解率: **{a:.1f}%**",
+        "target_80": "目標 80%",
+        "result_hero_100_title": "🏆 パーフェクト！！",
+        "result_hero_100_sub": "全問正解！完璧な学習でした！",
+        "result_hero_80_title": "🎉 素晴らしい！",
+        "result_hero_80_sub": "正解率 {a:.0f}% — この調子で続けよう！",
+        "result_hero_50_title": "💪 よく頑張った！",
+        "result_hero_50_sub": "正解率 {a:.0f}% — 復習で差をつけよう！",
+        "result_hero_low_title": "📖 今日はここから！",
+        "result_hero_low_sub": "正解率 {a:.0f}% — 繰り返せば必ず覚えられる！",
+        "xp_get": "⚡ +{xp} XP ゲット！",
+        "summary_title": "### 📋 今日の単語まとめ",
+        "no_words_yet": "まだありません",
+        "none_perfect": "なし！完璧です 🎉",
+        "chart_cum_xp_name": "累計XP",
+        "chart_cum_xp_title": "累計XPの推移（過去30日）",
+        "chart_date": "日付",
+        "chart_daily_cards_name": "学習枚数",
+        "chart_daily_cards_title": "日別 学習枚数（過去30日）",
+        "chart_count_axis": "枚数",
+        "chart_acc_name": "正解率",
+        "chart_acc_title": "日別 正解率（過去30日）",
+        "chart_acc_yaxis": "正解率 (%)",
+        "ta_header": "⚡ タイムアタック {i}/{t}",
+        "ta_reading": "読み: {r}",
+        "ta_correct": "✅ 正解！",
+        "ta_wrong": "❌ 不正解",
+        "ta_seconds": "⏱ {s:.1f}秒",
+        "ta_correct_meaning": "正解: <b>{m}</b>",
+        "rank_ta_result": "⚡ タイムアタック結果",
+        "rank_score_line": "{c}/{t}問正解",
+        "rank_record_as": "🎮 {name} として記録",
+        "rank_word_times": "### ⏱️ 単語別タイム",
+        "rank_you": " 👈 あなた",
+        "rank_q_suffix": "問",
+        "word_list_title": "📋 今日の単語リスト",
+        "word_list_sub": "まずこの単語を覚えてから、チェックに進もう！",
         "word_list_no": "No.",
-        "word_list_word": "蜊倩ｪ・,
-        "word_list_reading": "隱ｭ縺ｿ",
-        "word_list_meaning": "諢丞袖",
-        "word_list_start": "笨・隕壹∴縺滂ｼ∝腰隱槭メ繧ｧ繝・け繧偵・縺倥ａ繧・,
-        "word_list_back": "匠 繝帙・繝縺ｫ謌ｻ繧・,
-        "word_list_note": "庁 繝弱・繝医↓譖ｸ縺・※隕壹∴繧九→縺阪・縺薙・繝ｪ繧ｹ繝医ｒ隕九↑縺後ｉ邱ｴ鄙偵＠繧医≧・・,
+        "word_list_word": "単語",
+        "word_list_reading": "読み",
+        "word_list_meaning": "意味",
+        "word_list_start": "✅ 覚えた！単語チェックをはじめる",
+        "word_list_back": "🏠 ホームに戻る",
+        "word_list_note": "💡 ノートに書いて覚えるときはこのリストを見ながら練習しよう！",
     },
     "zh": {
-        "app_title": "当 蜊戊ｯ崎ｮｰ蠢・| 譛ｪ譚･蝪ｾ",
-        "select_user": "隸ｷ騾画叫逕ｨ謌ｷ",
-        "start": "蠑蟋具ｼ・,
-        "no_user": "霑俶ｲ｡譛画ｳｨ蜀檎畑謌ｷ・瑚ｯｷ閨皮ｳｻ邂｡逅・遭縲・,
-        "select_prompt": "--- 隸ｷ騾画叫 ---",
-        "select_error": "隸ｷ騾画叫逕ｨ謌ｷ",
-        "welcome": "蜷悟ｭｦ・∵・莉ｬ荳襍ｷ譚･隶ｰ蜊戊ｯ榊制・・,
-        "streak_msg": "螟ｩ霑樒ｻｭ蟄ｦ荵・∝､ｪ蜴牙ｮｳ莠・ｼ・,
-        "streak_zero": "当 莉雁､ｩ蠑蟋句ｭｦ荵蜷ｧ・・,
-        "select_material": "答 騾画叫謨呎攝",
-        "no_material": "霑俶ｲ｡譛画蕗譚撰ｼ瑚ｯｷ閨皮ｳｻ邂｡逅・遭縲・,
-        "material_label": "謨呎攝",
-        "no_cards_set": "譛ｬ謨呎攝證よ裏蜊戊ｯ阪・,
-        "page_range": "当 鬘ｵ遐∬激蝗ｴ:",
-        "item_range": "箸",
-        "progress_caption": "荳ｪ蟾ｲ謗梧升",
-        "today_task": "統 莉頑律莉ｻ蜉｡",
-        "badge_new": "・ 譁ｰ蜊戊ｯ・,
-        "badge_due": "煤 髴隕∝､堺ｹ",
-        "cards": "荳ｪ",
-        "start_study": "笨ｨ 蠑蟋倶ｻ雁､ｩ逧・ｭｦ荵・・,
-        "all_done": "脂 莉雁､ｩ逧・ｻｻ蜉｡蜈ｨ驛ｨ螳梧・・∵・螟ｩ隗・ｼ・,
-        "more_study": "検 諠ｳ扈ｧ扈ｭ蟄ｦ荵逧・酔蟄ｦ逵玖ｿ咎㈹・・,
-        "current_title": "蠖灘燕遘ｰ蜿ｷ",
-        "total_xp_lbl": "邏ｯ隶｡",
-        "weak_btn": "煤 螟堺ｹ蠑ｱ鬘ｹ\n\n蜀咲ｻ・ｸ谺｡\n豐｡隶ｰ菴冗噪蜊戊ｯ・,
-        "new_btn": "噫 謠仙燕謖第・\n\n蟄ｦ荵譁ｰ逧Ыn譛ｪ隗∬ｿ・噪蜊戊ｯ・,
-        "all_btn": "識 蜈ｨ驛ｨ螟堺ｹ\n\n髫乗惻鬘ｺ蠎十n螟堺ｹ謇譛牙黒隸・,
-        "ta_btn": "笞｡ 髯先慮謖第・・―n\n10遘貞・菴懃ｭ費ｼ―n謖第・謗定｡梧ｦ・,
-        "logout": "坎 騾蜃ｺ逋ｻ蠖・,
-        "think_hint": "眺 蜈亥惠閼台ｸｭ諠ｳ諠ｳ諢乗晢ｼ悟・謖画潔髓ｮ",
-        "show_answer": "操 譟･逵狗ｭ疲｡・,
-        "reading_label": "矧 隸ｻ髻ｳ・・,
-        "reading_jp_lbl": "隸ｻ髻ｳ・・,
-        "phonetic_label": "筈 蜿鷹浹・・,
-        "zh_meaning_label": "・・ 荳ｭ譁・ｼ・,
-        "example_lbl": "統 萓句唱・・,
-        "how_much": "菴隶ｰ蠕怜､壼ｰ托ｼ・,
-        "q0_btn": "笶圭n螳悟・荳堺ｼ喀n\n螳悟・\n諠ｳ荳崎ｵｷ譚･",
-        "q3_btn": "噺\n譛臥せ蜊ｰ雎｡\n\n諠ｳ襍ｷ譚･莠・n菴・干莠・慮髣ｴ",
-        "q4_btn": "泙\n螟ｧ菴楢ｮｰ蠕予n\n蠕亥ｿｫ諠ｳ襍ｷ\n菴・ｸ榊､ｪ遑ｮ螳・,
-        "q5_btn": "箝申n螳悟・隶ｰ菴擾ｼ―n\n迸ｬ髣ｴ遲泌・\n螳悟・譛画滑謠｡",
-        "next_day": "荳区ｬ｡・壽・螟ｩ",
-        "next_6d": "荳区ｬ｡・・螟ｩ蜷・,
-        "next_weeks": "荳区ｬ｡・壽焚蜻ｨ蜷・,
-        "next_month": "荳区ｬ｡・・荳ｪ譛井ｻ･荳・,
-        "legend_bad": "笶・螳悟・荳堺ｼ・,
-        "legend_good": "箝・螳檎ｾ趣ｼ・,
-        "result_title": "脂 莉雁､ｩ逧・ｭｦ荵螳梧・・・,
-        "perfect_lbl": "識 螳檎ｾ・,
-        "good_lbl": "泙 螟ｧ菴楢ｮｰ菴・,
-        "ok_lbl": "噺 譛臥せ蜊ｰ雎｡",
-        "ng_lbl": "笶・髴螟堺ｹ",
-        "lv_label": "式 邏ｯ隶｡",
-        "next_lv": "霍晉ｦｻ荳倶ｸ郤ｧ",
-        "words_done": "笨・蟾ｲ隶ｰ菴冗噪蜊戊ｯ・,
-        "words_retry": "煤 荳区ｬ｡蜀肴倦謌・,
-        "ng_notice_tail": "蜊戊ｯ肴・螟ｩ霑倅ｼ壼・邇ｰ縲ょ渚螟咲ｻ・ｹ荳螳夊・隶ｰ菴擾ｼ・,
-        "home_btn": "匠 霑泌屓鬥夜｡ｵ",
-        "retry_btn": "煤 蜀肴倦謌倅ｸ谺｡",
-        "graph_title": "嶋 菴逧・・髟ｿ蝗ｾ陦ｨ",
-        "tab_xp": "笞｡ XP蜿伜喧",
-        "tab_cards": "答 蟄ｦ荵謨ｰ驥・,
-        "tab_acc": "識 豁｣遑ｮ邇・,
-        "lang_switch": "・・ 蛻・困譌･譛ｬ隱・,
-        "nickname_label": "式 謗定｡梧ｦ懷錐遘ｰ:",
-        "nick_title": "### 式 隶ｾ鄂ｮ謗定｡梧ｦ懈亰遘ｰ",
-        "nick_box1": "銅 隸ｷ霎灘・譏ｵ遘ｰ",
-        "nick_box2": "蟆・仞遉ｺ蝨ｨ謗定｡梧ｦ應ｸ奇ｼ瑚ｯｷ蜍ｿ菴ｿ逕ｨ逵溷ｮ槫ｧ灘錐・・,
-        "nick_field": "譏ｵ遘ｰ・・縲・蟄暦ｼ・,
-        "nick_placeholder": "萓具ｼ壼黒隸崎ｾｾ莠ｺ",
-        "nick_submit": "笞｡ 遑ｮ螳夲ｼ・,
-        "nick_err": "隸ｷ霎灘・閾ｳ蟆・荳ｪ蟄・,
-        "nick_ok": "脂縲鶏nick}縲榊ｷｲ遑ｮ螳夲ｼ∝庄莉･蜿ょ刈謗定｡梧ｦ應ｺ・ｼ・,
-        "nick_caption": "式 謗定｡梧ｦ懷錐遘ｰ: **{nick}**縲[菫ｮ謾ｹ隸ｷ騾蜃ｺ蜷手ｮｾ鄂ｮ]",
-        "weak_ok": "脂 豐｡譛芽埋蠑ｱ蜊戊ｯ搾ｼ・,
-        "new_ok": "醇 蜈ｨ驛ｨ蜊戊ｯ榊ｷｲ謗梧升・∝､ｪ譽剃ｺ・ｼ・,
-        "daily_7": "検 霑樒ｻｭ7螟ｩ霎ｾ謌撰ｼ々Pﾃ・螂門干荳ｭ・・,
-        "daily_3": "櫨 蟾ｲ霑樒ｻｭ{s}螟ｩ・∝・霑・r}螟ｩ隗｣髞・螟ｩ螂門干・・,
-        "daily_0": "庁 豈丞､ｩ蝮壽戟蜿ｯ隗｣髞∬ｿ樒ｻｭ7螟ｩXPﾃ・螂門干・・,
-        "interrupt_btn": "竢ｸ・・證ょ●蟷ｶ霑泌屓鬥夜｡ｵ",
-        "progress_n": "{i} / {t} 鬚・,
-        "ta_question": "眺 豁｣遑ｮ逧・э諤晄弍蜩ｪ荳ｪ・・,
-        "ta_tap": "燥 轤ｹ蜃ｻ豁｣遑ｮ逧・э諤晢ｼ・,
-        "ta_next": "筐｡・・荳倶ｸ鬚・,
-        "rank_title": "醇 謗定｡梧ｦ懶ｼ・OP10・・,
-        "rank_empty": "霑俶ｲ｡譛芽ｮｰ蠖包ｼ梧擂蠖鍋ｬｬ荳蜷ｧ・・,
-        "ta_again": "煤 蜀肴擂荳谺｡髯先慮",
-        "score_save_err": "菫晏ｭ伜・謨ｰ蜃ｺ髞呻ｼ・,
-        "graph_need_days": "投 蟄ｦ荵貊｡2螟ｩ蜊ｳ蜿ｯ譏ｾ遉ｺ蝗ｾ陦ｨ・∵・螟ｩ蜀肴擂蜩ｦ 櫨",
-        "acc_no_data": "證よ裏豁｣遑ｮ邇・焚謐ｮ",
-        "study_days_caption": "櫨 霑・悉30螟ｩ蜈ｱ蟄ｦ荵 **{n}螟ｩ**・・,
-        "max_day_caption": "遵 蟄ｦ荵譛螟夂噪荳螟ｩ: **{d}** ({n}荳ｪ)",
-        "avg_acc_caption": "投 霑・悉30螟ｩ蟷ｳ蝮・ｭ｣遑ｮ邇・ **{a:.1f}%**",
-        "target_80": "逶ｮ譬・80%",
-        "result_hero_100_title": "醇 蜈ｨ蟇ｹ・・ｼ・,
-        "result_hero_100_sub": "蜈ｨ驛ｨ遲泌ｯｹ・∝､ｪ譽剃ｺ・ｼ・,
-        "result_hero_80_title": "脂 螟ｪ譽剃ｺ・ｼ・,
-        "result_hero_80_sub": "豁｣遑ｮ邇・{a:.0f}% 窶・扈ｧ扈ｭ菫晄戟・・,
-        "result_hero_50_title": "潮 蜉豐ｹ・・,
-        "result_hero_50_sub": "豁｣遑ｮ邇・{a:.0f}% 窶・螟堺ｹ荳荳倶ｼ壽峩螂ｽ・・,
-        "result_hero_low_title": "当 莉手ｿ咎㈹蠑蟋具ｼ・,
-        "result_hero_low_sub": "豁｣遑ｮ邇・{a:.0f}% 窶・螟夂ｻ・ｸ螳夊・隶ｰ菴擾ｼ・,
-        "xp_get": "笞｡ +{xp} XP 闔ｷ蠕暦ｼ・,
-        "summary_title": "### 搭 莉頑律蜊戊ｯ肴ｱ・ｻ",
-        "no_words_yet": "霑俶ｲ｡譛・,
-        "none_perfect": "豐｡譛会ｼ∝・蟇ｹ 脂",
-        "chart_cum_xp_name": "邏ｯ隶｡XP",
-        "chart_cum_xp_title": "邏ｯ隶｡XP蜿伜喧・郁ｿ・悉30螟ｩ・・,
-        "chart_date": "譌･譛・,
-        "chart_daily_cards_name": "蟄ｦ荵謨ｰ驥・,
-        "chart_daily_cards_title": "豈乗律蟄ｦ荵謨ｰ驥擾ｼ郁ｿ・悉30螟ｩ・・,
-        "chart_count_axis": "謨ｰ驥・,
-        "chart_acc_name": "豁｣遑ｮ邇・,
-        "chart_acc_title": "豈乗律豁｣遑ｮ邇・ｼ郁ｿ・悉30螟ｩ・・,
-        "chart_acc_yaxis": "豁｣遑ｮ邇・(%)",
-        "ta_header": "笞｡ 髯先慮謖第・ {i}/{t}",
-        "ta_reading": "隸ｻ髻ｳ: {r}",
-        "ta_correct": "笨・豁｣遑ｮ・・,
-        "ta_wrong": "笶・髞呵ｯｯ",
-        "ta_seconds": "竢ｱ {s:.1f}遘・,
-        "ta_correct_meaning": "豁｣遑ｮ遲疲｡・ <b>{m}</b>",
-        "rank_ta_result": "笞｡ 髯先慮謖第・扈捺棡",
-        "rank_score_line": "{c}/{t}鬚倡ｭ泌ｯｹ",
-        "rank_record_as": "式 莉･ {name} 隶ｰ蠖・,
-        "rank_word_times": "### 竢ｱ・・蜷・｢倡畑譌ｶ",
-        "rank_you": " 争 菴",
-        "rank_q_suffix": "鬚・,
-        "word_list_title": "搭 莉頑律逧・黒隸榊・陦ｨ",
-        "word_list_sub": "蜈郁ｮｰ菴剰ｿ吩ｺ帛黒隸搾ｼ悟・蠑蟋区ｵ矩ｪ鯉ｼ・,
+        "app_title": "📖 单词记忆 | 未来塾",
+        "select_user": "请选择用户",
+        "start": "开始！",
+        "no_user": "还没有注册用户，请联系管理员。",
+        "select_prompt": "--- 请选择 ---",
+        "select_error": "请选择用户",
+        "welcome": "同学！我们一起来记单词吧！",
+        "streak_msg": "天连续学习！太厉害了！",
+        "streak_zero": "📖 今天开始学习吧！",
+        "select_material": "📚 选择教材",
+        "no_material": "还没有教材，请联系管理员。",
+        "material_label": "教材",
+        "no_cards_set": "本教材暂无单词。",
+        "page_range": "📖 页码范围:",
+        "item_range": "🔢",
+        "progress_caption": "个已掌握",
+        "today_task": "📝 今日任务",
+        "badge_new": "🆕 新单词",
+        "badge_due": "🔁 需要复习",
+        "cards": "个",
+        "start_study": "✨ 开始今天的学习！",
+        "all_done": "🎉 今天的任务全部完成！明天见！",
+        "more_study": "🌟 想继续学习的同学看这里！",
+        "current_title": "当前称号",
+        "total_xp_lbl": "累计",
+        "weak_btn": "🔁 复习弱项\n\n再练一次\n没记住的单词",
+        "new_btn": "🚀 提前挑战\n\n学习新的\n未见过的单词",
+        "all_btn": "🎯 全部复习\n\n随机顺序\n复习所有单词",
+        "ta_btn": "⚡ 限时挑战！\n\n10秒内作答！\n挑战排行榜",
+        "logout": "🚪 退出登录",
+        "think_hint": "💭 先在脑中想想意思，再按按钮",
+        "show_answer": "👀 查看答案",
+        "reading_label": "🔊 读音：",
+        "reading_jp_lbl": "读音：",
+        "phonetic_label": "🔤 发音：",
+        "zh_meaning_label": "🇨🇳 中文：",
+        "example_lbl": "📝 例句：",
+        "how_much": "你记得多少？",
+        "q0_btn": "❌\n完全不会\n\n完全\n想不起来",
+        "q3_btn": "🔶\n有点印象\n\n想起来了\n但花了时间",
+        "q4_btn": "🟢\n大体记得\n\n很快想起\n但不太确定",
+        "q5_btn": "⭐\n完全记住！\n\n瞬间答出\n完全有把握",
+        "next_day": "下次：明天",
+        "next_6d": "下次：6天后",
+        "next_weeks": "下次：数周后",
+        "next_month": "下次：1个月以上",
+        "legend_bad": "❌ 完全不会",
+        "legend_good": "⭐ 完美！",
+        "result_title": "🎉 今天的学习完成！",
+        "perfect_lbl": "🎯 完美",
+        "good_lbl": "🟢 大体记住",
+        "ok_lbl": "🔶 有点印象",
+        "ng_lbl": "❌ 需复习",
+        "lv_label": "🎮 累计",
+        "next_lv": "距离下一级",
+        "words_done": "✅ 已记住的单词",
+        "words_retry": "🔁 下次再挑战",
+        "ng_notice_tail": "单词明天还会出现。反复练习一定能记住！",
+        "home_btn": "🏠 返回首页",
+        "retry_btn": "🔁 再挑战一次",
+        "graph_title": "📈 你的成长图表",
+        "tab_xp": "⚡ XP变化",
+        "tab_cards": "📚 学习数量",
+        "tab_acc": "🎯 正确率",
+        "lang_switch": "🇯🇵 切换日本語",
+        "nickname_label": "🎮 排行榜名称:",
+        "nick_title": "### 🎮 设置排行榜昵称",
+        "nick_box1": "📺 请输入昵称",
+        "nick_box2": "将显示在排行榜上，请勿使用真实姓名！",
+        "nick_field": "昵称（3〜8字）",
+        "nick_placeholder": "例：单词达人",
+        "nick_submit": "⚡ 确定！",
+        "nick_err": "请输入至少2个字",
+        "nick_ok": "🎉「{nick}」已确定！可以参加排行榜了！",
+        "nick_caption": "🎮 排行榜名称: **{nick}**　[修改请退出后设置]",
+        "weak_ok": "🎉 没有薄弱单词！",
+        "new_ok": "🏆 全部单词已掌握！太棒了！",
+        "daily_7": "🌟 连续7天达成！XP×2奖励中！",
+        "daily_3": "🔥 已连续{s}天！再过{r}天解锁7天奖励！",
+        "daily_0": "💡 每天坚持可解锁连续7天XP×2奖励！",
+        "interrupt_btn": "⏸️ 暂停并返回首页",
+        "progress_n": "{i} / {t} 题",
+        "ta_question": "💭 正确的意思是哪个？",
+        "ta_tap": "👇 点击正确的意思！",
+        "ta_next": "➡️ 下一题",
+        "rank_title": "🏆 排行榜（TOP10）",
+        "rank_empty": "还没有记录，来当第一吧！",
+        "ta_again": "🔁 再来一次限时",
+        "score_save_err": "保存分数出错：",
+        "graph_need_days": "📊 学习满2天即可显示图表！明天再来哦 🔥",
+        "acc_no_data": "暂无正确率数据",
+        "study_days_caption": "🔥 过去30天共学习 **{n}天**！",
+        "max_day_caption": "🏅 学习最多的一天: **{d}** ({n}个)",
+        "avg_acc_caption": "📊 过去30天平均正确率: **{a:.1f}%**",
+        "target_80": "目标 80%",
+        "result_hero_100_title": "🏆 全对！！",
+        "result_hero_100_sub": "全部答对！太棒了！",
+        "result_hero_80_title": "🎉 太棒了！",
+        "result_hero_80_sub": "正确率 {a:.0f}% — 继续保持！",
+        "result_hero_50_title": "💪 加油！",
+        "result_hero_50_sub": "正确率 {a:.0f}% — 复习一下会更好！",
+        "result_hero_low_title": "📖 从这里开始！",
+        "result_hero_low_sub": "正确率 {a:.0f}% — 多练一定能记住！",
+        "xp_get": "⚡ +{xp} XP 获得！",
+        "summary_title": "### 📋 今日单词汇总",
+        "no_words_yet": "还没有",
+        "none_perfect": "没有！全对 🎉",
+        "chart_cum_xp_name": "累计XP",
+        "chart_cum_xp_title": "累计XP变化（过去30天）",
+        "chart_date": "日期",
+        "chart_daily_cards_name": "学习数量",
+        "chart_daily_cards_title": "每日学习数量（过去30天）",
+        "chart_count_axis": "数量",
+        "chart_acc_name": "正确率",
+        "chart_acc_title": "每日正确率（过去30天）",
+        "chart_acc_yaxis": "正确率 (%)",
+        "ta_header": "⚡ 限时挑战 {i}/{t}",
+        "ta_reading": "读音: {r}",
+        "ta_correct": "✅ 正确！",
+        "ta_wrong": "❌ 错误",
+        "ta_seconds": "⏱ {s:.1f}秒",
+        "ta_correct_meaning": "正确答案: <b>{m}</b>",
+        "rank_ta_result": "⚡ 限时挑战结果",
+        "rank_score_line": "{c}/{t}题答对",
+        "rank_record_as": "🎮 以 {name} 记录",
+        "rank_word_times": "### ⏱️ 各题用时",
+        "rank_you": " 👈 你",
+        "rank_q_suffix": "题",
+        "word_list_title": "📋 今日的单词列表",
+        "word_list_sub": "先记住这些单词，再开始测验！",
         "word_list_no": "No.",
-        "word_list_word": "蜊戊ｯ・,
-        "word_list_reading": "隸ｻ髻ｳ",
-        "word_list_meaning": "諢乗・,
-        "word_list_start": "笨・隶ｰ菴丈ｺ・ｼ∝ｼ蟋句黒隸肴ｵ矩ｪ・,
-        "word_list_back": "匠 霑泌屓鬥夜｡ｵ",
-        "word_list_note": "庁 諠ｳ逕ｨ隨碑ｮｰ譛ｬ謚・・逧・酔蟄ｦ・悟庄莉･蟇ｹ辣ｧ霑吩ｸｪ蛻苓｡ｨ扈・ｹ・・,
+        "word_list_word": "单词",
+        "word_list_reading": "读音",
+        "word_list_meaning": "意思",
+        "word_list_start": "✅ 记住了！开始单词测验",
+        "word_list_back": "🏠 返回首页",
+        "word_list_note": "💡 想用笔记本抄写的同学，可以对照这个列表练习！",
     },
 }
 
 
 def T(key):
-    """迴ｾ蝨ｨ縺ｮ險隱櫁ｨｭ螳壹〒繝・く繧ｹ繝医ｒ霑斐☆"""
+    """現在の言語設定でテキストを返す"""
     lang = st.session_state.get("user_lang", "ja")
     return TRANSLATIONS.get(lang, TRANSLATIONS["ja"]).get(
         key, TRANSLATIONS["ja"].get(key, key)
     )
 
 
-st.set_page_config(page_title="当 蜊倩ｪ樊囓險・| 譛ｪ譚･蝪ｾ", layout="centered")
+st.set_page_config(page_title="📖 単語暗記 | 未来塾", layout="centered")
 
-# 笏笏 繝輔か繝ｳ繝郁ｪｭ縺ｿ霎ｼ縺ｿ・・ink繧ｿ繧ｰ蜊倡峡・俄楳笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ── フォント読み込み（linkタグ単独）──────────────
 st.markdown(
     '<link rel="preconnect" href="https://fonts.googleapis.com">'
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
@@ -309,7 +309,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 笏笏 繝輔か繝ｳ繝磯←逕ｨCSS・・tyle繧ｿ繧ｰ蜊倡峡・俄楳笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ── フォント適用CSS（styleタグ単独）──────────────
 st.markdown("""
 <style>
 .main .block-container,
@@ -346,18 +346,18 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# 謗･邯・
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# 接続
+# ─────────────────────────────
 @st.cache_resource
 def get_supabase():
     url = st.secrets["supabase"]["url"]
     key = st.secrets["supabase"]["key"]
     return create_client(url, key)
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# SM-2 繧｢繝ｫ繧ｴ繝ｪ繧ｺ繝・亥､画峩縺ｪ縺暦ｼ・
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# SM-2 アルゴリズム（変更なし）
+# ─────────────────────────────
 def sm2_update(quality, ease_factor, interval, repetitions):
     if quality < 3:
         new_repetitions = 0
@@ -375,11 +375,11 @@ def sm2_update(quality, ease_factor, interval, repetitions):
     next_date = (date.today() + timedelta(days=new_interval)).isoformat()
     return new_ef, new_interval, new_repetitions, next_date
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# save_review・・eview_logs 縺ｫ upsert・・
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# save_review（review_logs に upsert）
+# ─────────────────────────────
 def save_review(username, cid, q, new_ef, new_iv, new_rp, next_date):
-    # cid縺君one縺ｾ縺溘・0縺ｮ蝣ｴ蜷医・螟夜Κ繧ｭ繝ｼ蛻ｶ邏・＆蜿阪↓縺ｪ繧九◆繧√せ繧ｭ繝・・
+    # cidがNoneまたは0の場合は外部キー制約違反になるためスキップ
     if not cid:
         return
 
@@ -410,9 +410,9 @@ def save_review(username, cid, q, new_ef, new_iv, new_rp, next_date):
         supabase.table("review_logs").insert(data).execute()
     st.cache_data.clear()
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# 繝・・繧ｿ蜿門ｾ鈴未謨ｰ
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# データ取得関数
+# ─────────────────────────────
 @st.cache_data(ttl=60)
 def load_users():
     try:
@@ -423,14 +423,14 @@ def load_users():
         return []
 
 
-# Supabase SQL Editor 縺ｧ users 縺ｫ nickname 蛻励ｒ霑ｽ蜉縺吶ｋ縺ｨ縺阪・萓具ｼ域焔蜍募ｮ溯｡鯉ｼ・
+# Supabase SQL Editor で users に nickname 列を追加するときの例（手動実行）:
 # ALTER TABLE users ADD COLUMN IF NOT EXISTS nickname TEXT DEFAULT '';
 # ALTER TABLE users ADD COLUMN IF NOT EXISTS lang TEXT DEFAULT 'ja';
 
 
 @st.cache_data(ttl=60)
 def load_user_nickname(username):
-    """繝ｦ繝ｼ繧ｶ繝ｼ縺ｮ繝九ャ繧ｯ繝阪・繝繧貞叙蠕・""
+    """ユーザーのニックネームを取得"""
     try:
         sb = get_supabase()
         res = sb.table("users").select("nickname").eq("username", username).execute()
@@ -443,7 +443,7 @@ def load_user_nickname(username):
 
 @st.cache_data(ttl=60)
 def load_user_lang(username):
-    """繝ｦ繝ｼ繧ｶ繝ｼ縺ｮ險隱櫁ｨｭ螳壹ｒ蜿門ｾ・""
+    """ユーザーの言語設定を取得"""
     try:
         sb = get_supabase()
         res = sb.table("users").select("lang").eq("username", username).execute()
@@ -455,7 +455,7 @@ def load_user_lang(username):
 
 
 def save_user_lang(username, lang):
-    """險隱櫁ｨｭ螳壹ｒ菫晏ｭ・""
+    """言語設定を保存"""
     try:
         sb = get_supabase()
         sb.table("users").update({"lang": lang}).eq("username", username).execute()
@@ -465,7 +465,7 @@ def save_user_lang(username, lang):
 
 
 def save_user_nickname(username, nickname):
-    """繝九ャ繧ｯ繝阪・繝繧剃ｿ晏ｭ・""
+    """ニックネームを保存"""
     try:
         sb = get_supabase()
         sb.table("users").update({"nickname": nickname}).eq("username", username).execute()
@@ -478,10 +478,10 @@ def save_user_nickname(username, nickname):
 @st.cache_data(ttl=60)
 def load_study_plan(username: str) -> dict:
     """
-    蝓ｺ譛ｬ繝壹・繧ｹ(base_daily_limit)縺ｨ莉頑律縺ｮ隱ｿ謨ｴ蛟､繧貞叙蠕励☆繧九・
-    today_limit_date 縺御ｻ頑律縺ｧ縺ｪ縺代ｌ縺ｰ today_limit 縺ｯ辟｡蜉ｹ縺ｨ縺ｿ縺ｪ縺吶・
-    謌ｻ繧雁､: {"base": int, "today": int, "effective": int}
-      effective = 莉頑律螳滄圀縺ｫ菴ｿ縺・椢謨ｰ
+    基本ペース(base_daily_limit)と今日の調整値を取得する。
+    today_limit_date が今日でなければ today_limit は無効とみなす。
+    戻り値: {"base": int, "today": int, "effective": int}
+      effective = 今日実際に使う枚数
     """
     try:
         sb = get_supabase()
@@ -495,7 +495,7 @@ def load_study_plan(username: str) -> dict:
         today_str = date.today().isoformat()
         today_limit = row.get("today_limit")
         today_date = row.get("today_limit_date")
-        # 莉頑律縺ｮ譌･莉倥→荳閾ｴ縺吶ｋ蝣ｴ蜷医・縺ｿ today_limit 繧呈怏蜉ｹ縺ｫ縺吶ｋ
+        # 今日の日付と一致する場合のみ today_limit を有効にする
         if today_limit is not None and str(today_date) == today_str:
             effective = int(today_limit)
         else:
@@ -506,7 +506,7 @@ def load_study_plan(username: str) -> dict:
 
 
 def save_base_limit(username: str, limit: int) -> bool:
-    """蝓ｺ譛ｬ繝壹・繧ｹ・・ase_daily_limit・峨ｒ菫晏ｭ倥☆繧・""
+    """基本ペース（base_daily_limit）を保存する"""
     try:
         sb = get_supabase()
         sb.table("users").update({
@@ -521,7 +521,7 @@ def save_base_limit(username: str, limit: int) -> bool:
 
 
 def save_today_limit(username: str, limit: int) -> bool:
-    """莉頑律縺縺代・隱ｿ謨ｴ譫壽焚繧剃ｿ晏ｭ倥☆繧・""
+    """今日だけの調整枚数を保存する"""
     try:
         sb = get_supabase()
         sb.table("users").update({
@@ -622,7 +622,7 @@ def count_new_and_due_for_set(username, set_id):
     card_ids = [c["id"] for c in cards]
     logs = load_review_logs(username)
 
-    # 蜷・き繝ｼ繝峨・譛譁ｰ繝ｭ繧ｰ繧貞叙蠕・
+    # 各カードの最新ログを取得
     latest = {}
     for row in logs:
         cid = row["flashcard_id"]
@@ -673,7 +673,7 @@ def load_due_cards(username: str, set_id: int) -> list:
 def render_card_front(card: dict, lang: str = "ja"):
     category = str(card.get("category", ""))
 
-    if "縺ｿ繧薙↑縺ｮ譌･譛ｬ隱・ in category:
+    if "みんなの日本語" in category:
         meaning = card.get("meaning", "")
         st.markdown(f"""
 <div style="
@@ -683,16 +683,16 @@ def render_card_front(card: dict, lang: str = "ja"):
     text-align:center;
     box-shadow:0 4px 16px rgba(0,0,0,0.08);
     margin:0.5rem 0;">
-  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">蝠城｡・/div>
+  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">問題</div>
   <div style="font-size:2.2rem;font-weight:700;color:#1a1a1a;line-height:1.4;">
     {meaning}
   </div>
-  <div style="font-size:0.85rem;color:#bbb;margin-top:1rem;">譌･譛ｬ隱槭〒菴輔→險縺・∪縺吶°・・/div>
+  <div style="font-size:0.85rem;color:#bbb;margin-top:1rem;">日本語で何と言いますか？</div>
 </div>
 """, unsafe_allow_html=True)
 
     else:
-        word    = card.get("lang1", card.get("word", ""))
+        word    = card.get("word", "")
         reading = card.get("reading", "")
         reading_html = f'<div style="font-size:1rem;color:#888;margin-top:0.4rem;">{reading}</div>' \
                        if reading and reading != word else ""
@@ -704,7 +704,7 @@ def render_card_front(card: dict, lang: str = "ja"):
     text-align:center;
     box-shadow:0 4px 16px rgba(0,0,0,0.08);
     margin:0.5rem 0;">
-  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">蝠城｡・/div>
+  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">問題</div>
   <div style="font-size:2.4rem;font-weight:700;color:#1a1a1a;">
     {word}
   </div>
@@ -716,11 +716,11 @@ def render_card_front(card: dict, lang: str = "ja"):
 def render_card_back(card: dict, lang: str = "ja"):
     category = str(card.get("category", ""))
 
-    if "縺ｿ繧薙↑縺ｮ譌･譛ｬ隱・ in category:
-        word    = card.get("lang1", card.get("word", ""))
+    if "みんなの日本語" in category:
+        word    = card.get("word", "")
         reading = card.get("reading", "")
-        pos     = card.get("meaning_zh", "")   # 蜩∬ｩ槭亥錐縲峨亥虚I縲・
-        accent  = card.get("phonetic", "")     # 繧｢繧ｯ繧ｻ繝ｳ繝育分蜿ｷ
+        pos     = card.get("meaning_zh", "")   # 品詞〈名〉〈動I〉
+        accent  = card.get("phonetic", "")     # アクセント番号
 
         accent_html = f'<span style="font-size:0.95rem;color:#e05a00;margin-left:0.5rem;">{accent}</span>' \
                       if accent else ""
@@ -735,7 +735,7 @@ def render_card_back(card: dict, lang: str = "ja"):
     text-align:center;
     box-shadow:0 4px 16px rgba(0,0,0,0.08);
     margin:0.5rem 0;">
-  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">遲斐∴</div>
+  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">答え</div>
   <div style="font-size:2.2rem;font-weight:700;color:#1a1a1a;line-height:1.4;">
     {word}
   </div>
@@ -755,11 +755,11 @@ def render_card_back(card: dict, lang: str = "ja"):
 
         ph_html = f'<div style="font-size:1rem;color:#777;margin-top:0.3rem;">{phonetic}</div>' \
                   if phonetic else ""
-        zh_html = f'<div style="font-size:1.1rem;color:#e05a00;margin-top:0.6rem;">・・ {meaning_zh}</div>' \
+        zh_html = f'<div style="font-size:1.1rem;color:#e05a00;margin-top:0.6rem;">🇨🇳 {meaning_zh}</div>' \
                   if meaning_zh else ""
         ex_html = f'<div style="font-size:0.9rem;color:#aaa;margin-top:0.6rem;font-style:italic;">{example}</div>' \
                   if example else ""
-        rd_html = f'<div style="font-size:1rem;color:#555;margin-top:0.4rem;">隱ｭ縺ｿ・嘴reading}</div>' \
+        rd_html = f'<div style="font-size:1rem;color:#555;margin-top:0.4rem;">読み：{reading}</div>' \
                   if reading else ""
 
         st.markdown(f"""
@@ -770,7 +770,7 @@ def render_card_back(card: dict, lang: str = "ja"):
     text-align:center;
     box-shadow:0 4px 16px rgba(0,0,0,0.08);
     margin:0.5rem 0;">
-  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">遲斐∴</div>
+  <div style="font-size:0.85rem;color:#aaa;margin-bottom:0.8rem;letter-spacing:2px;">答え</div>
   <div style="font-size:1.8rem;font-weight:700;color:#1a1a1a;">
     {meaning}
   </div>
@@ -782,9 +782,9 @@ def render_card_back(card: dict, lang: str = "ja"):
 """, unsafe_allow_html=True)
 
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# 繧ｻ繝・す繝ｧ繝ｳ蛻晄悄蛹・
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# セッション初期化
+# ─────────────────────────────
 for key, default in [
     ("flash_user", ""),
     ("user_lang", "ja"),
@@ -813,9 +813,9 @@ if "selected_set_id" not in st.session_state:
 if "flash_step" not in st.session_state:
     st.session_state.flash_step = "home"
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# 繝ｭ繧ｰ繧､繝ｳ逕ｻ髱｢
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# ログイン画面
+# ─────────────────────────────
 if not st.session_state["flash_user"]:
     st.title(T("app_title"))
     user_list = load_users()
@@ -835,11 +835,11 @@ if not st.session_state["flash_user"]:
 
 username = st.session_state["flash_user"]
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# 繝帙・繝逕ｻ髱｢
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# ホーム画面
+# ─────────────────────────────
 def show_home(username):
-    # 笏笏 CSS 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── CSS ────────────────────────────────
     st.markdown("""
     <style>
     .badge-red {
@@ -862,30 +862,30 @@ def show_home(username):
     </style>
     """, unsafe_allow_html=True)
 
-    # 笏笏 繝｢繝ｼ繝牙愛螳・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── モード判定 ─────────────────────────
     show_settings = st.session_state.get("show_settings", False)
 
-    # 笏笏 繝倥ャ繝繝ｼ陦鯉ｼ亥ｸｸ縺ｫ陦ｨ遉ｺ・・笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── ヘッダー行（常に表示） ──────────────
     col_title, col_gear = st.columns([5, 1])
     with col_title:
         if st.session_state.get("user_lang") == "zh":
-            st.markdown(f"### 菴螂ｽ・鶏username}・・)
+            st.markdown(f"### 你好，{username}！")
         else:
-            st.markdown(f"### 縺薙ｓ縺ｫ縺｡縺ｯ縲＋username}縺輔ｓ・・)
+            st.markdown(f"### こんにちは、{username}さん！")
     with col_gear:
-        gear_label = "笨・髢峨§繧・ if show_settings else "笞呻ｸ・險ｭ螳・
+        gear_label = "✖ 閉じる" if show_settings else "⚙️ 設定"
         if st.button(gear_label, key="toggle_settings"):
             st.session_state["show_settings"] = not show_settings
             st.rerun()
 
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏・
-    # 險ｭ螳壹・繝ｼ繧ｸ
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏・
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 設定ページ
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     if show_settings:
         st.markdown("---")
-        st.markdown("#### 笞呻ｸ・險ｭ螳・)
+        st.markdown("#### ⚙️ 設定")
 
-        # 險隱槫・譖ｿ
+        # 言語切替
         if st.button(T("lang_switch"), key="lang_toggle"):
             new_lang = "zh" if st.session_state["user_lang"] == "ja" else "ja"
             st.session_state["user_lang"] = new_lang
@@ -894,8 +894,8 @@ def show_home(username):
 
         st.markdown("---")
 
-        # 謨呎攝驕ｸ謚・
-        st.markdown("##### 答 謨呎攝繧帝∈縺ｶ")
+        # 教材選択
+        st.markdown("##### 📚 教材を選ぶ")
         sets = load_flashcard_sets()
         if sets:
             set_id_list = [s["id"] for s in sets]
@@ -904,7 +904,7 @@ def show_home(username):
             prev = st.session_state.get("selected_set_id")
             default_idx = set_id_list.index(prev) if prev in set_id_list else 0
             selected_set_id = st.selectbox(
-                "謨呎攝",
+                "教材",
                 options=set_id_list,
                 index=default_idx,
                 format_func=lambda x: set_name_map[x],
@@ -913,15 +913,15 @@ def show_home(username):
             st.session_state["selected_set_id"] = selected_set_id
             info = set_info_map[selected_set_id]
             st.caption(
-                f"唐 {info.get('category','')} ・・{info.get('grade','')} ・・{info.get('description','')}"
+                f"📂 {info.get('category','')} ／ {info.get('grade','')} ／ {info.get('description','')}"
             )
         else:
             st.warning(T("no_material"))
 
         st.markdown("---")
 
-        # 蟄ｦ鄙偵・繝ｼ繧ｹ險ｭ螳・
-        st.markdown("##### 套 蟄ｦ鄙偵・繝ｼ繧ｹ險ｭ螳・)
+        # 学習ペース設定
+        st.markdown("##### 📅 学習ペース設定")
         plan = load_study_plan(username)
         base = plan["base"]
         today = plan["today"]
@@ -929,100 +929,100 @@ def show_home(username):
 
         st.markdown(
             f"<div style='font-size:0.9rem;color:#555;margin-bottom:8px;'>"
-            f"迴ｾ蝨ｨ縺ｮ險ｭ螳・ <b>{eff}譫・譌･</b>"
-            + (f"縲・亥渕譛ｬ: {base}譫・/ 莉頑律: {today}譫夲ｼ・ if today is not None and today != base else "")
+            f"現在の設定: <b>{eff}枚/日</b>"
+            + (f"　（基本: {base}枚 / 今日: {today}枚）" if today is not None and today != base else "")
             + "</div>",
             unsafe_allow_html=True,
         )
         pace_options = [3, 5, 10, 15, 20, 25, 30]
         pace_mode = st.radio(
-            "險ｭ螳壹Δ繝ｼ繝・,
-            options=["搭 蝓ｺ譛ｬ繝壹・繧ｹ繧貞､画峩", "笞｡ 莉頑律縺縺題ｪｿ謨ｴ"],
+            "設定モード",
+            options=["📋 基本ペースを変更", "⚡ 今日だけ調整"],
             horizontal=True,
             key="pace_mode_radio",
             label_visibility="collapsed",
         )
-        if pace_mode == "搭 蝓ｺ譛ｬ繝壹・繧ｹ繧貞､画峩":
-            st.caption("蜈育函縺ｨ逶ｸ隲・＠縺ｦ豎ｺ繧√◆1譌･縺ｮ逶ｮ讓呎椢謨ｰ縺ｧ縺吶・)
+        if pace_mode == "📋 基本ペースを変更":
+            st.caption("先生と相談して決めた1日の目標枚数です。")
             new_base = st.radio(
-                "蝓ｺ譛ｬ譫壽焚",
+                "基本枚数",
                 options=pace_options,
                 index=pace_options.index(base) if base in pace_options else 1,
                 horizontal=True,
                 key="base_radio",
-                format_func=lambda x: f"{x}譫・,
+                format_func=lambda x: f"{x}枚",
             )
-            st.caption("逶ｮ螳・ 3縲・譫・蛻昴ａ縺ｦ / 10譫・讓呎ｺ・/ 20譫壻ｻ･荳・隧ｦ鬨灘燕")
-            if st.button("笨・蝓ｺ譛ｬ繝壹・繧ｹ繧剃ｿ晏ｭ・, key="save_base"):
+            st.caption("目安: 3〜5枚=初めて / 10枚=標準 / 20枚以上=試験前")
+            if st.button("✅ 基本ペースを保存", key="save_base"):
                 if save_base_limit(username, new_base):
-                    st.success(f"蝓ｺ譛ｬ繝壹・繧ｹ繧・{new_base}譫・縺ｫ險ｭ螳壹＠縺ｾ縺励◆・・)
+                    st.success(f"基本ペースを {new_base}枚 に設定しました！")
                     st.rerun()
         else:
-            st.caption("莉頑律縺縺大､画峩縺ｧ縺阪∪縺吶らｿ梧律縺ｯ蝓ｺ譛ｬ繝壹・繧ｹ縺ｫ閾ｪ蜍輔〒謌ｻ繧翫∪縺吶・)
+            st.caption("今日だけ変更できます。翌日は基本ペースに自動で戻ります。")
             adj_default = today if (today is not None and today in pace_options) else eff
             if adj_default not in pace_options:
                 adj_default = 10
             new_today = st.radio(
-                "莉頑律縺ｮ譫壽焚",
+                "今日の枚数",
                 options=pace_options,
                 index=pace_options.index(adj_default),
                 horizontal=True,
                 key="today_radio",
-                format_func=lambda x: f"{x}譫・,
+                format_func=lambda x: f"{x}枚",
             )
             diff = new_today - base
             st.caption(
-                f"蝓ｺ譛ｬ繧医ｊ {abs(diff)}譫・{'蟆代↑繧・ if diff < 0 else '螟壹ａ・Å沐･' if diff > 0 else '竊・蝓ｺ譛ｬ繝壹・繧ｹ騾壹ｊ 総'}"
+                f"基本より {abs(diff)}枚 {'少なめ' if diff < 0 else '多め！🔥' if diff > 0 else '→ 基本ペース通り 👍'}"
             )
-            if st.button("笞｡ 莉頑律縺ｯ縺薙・譫壽焚縺ｧ・・, key="save_today"):
+            if st.button("⚡ 今日はこの枚数で！", key="save_today"):
                 if save_today_limit(username, new_today):
-                    st.success(f"莉頑律縺ｯ {new_today}譫・縺ｧ蟄ｦ鄙偵＠縺ｾ縺呻ｼ・)
+                    st.success(f"今日は {new_today}枚 で学習します！")
                     st.rerun()
 
         st.markdown("---")
 
-        # 繝九ャ繧ｯ繝阪・繝險ｭ螳・
-        st.markdown("##### 式 繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ繝阪・繝")
+        # ニックネーム設定
+        st.markdown("##### 🎮 ランキングネーム")
         current_nick = load_user_nickname(username)
         if current_nick:
-            st.caption(f"迴ｾ蝨ｨ: **{current_nick}**")
+            st.caption(f"現在: **{current_nick}**")
         nick_input = st.text_input(
-            "譁ｰ縺励＞繝九ャ繧ｯ繝阪・繝・・縲・譁・ｭ暦ｼ・,
+            "新しいニックネーム（2〜8文字）",
             max_chars=8,
-            placeholder="萓・ 縺溘ｓ縺斐・繧ｹ繧ｿ繝ｼ",
+            placeholder="例: たんごマスター",
             key="settings_nick",
         )
-        if st.button("沈 菫晏ｭ・, key="save_nick"):
+        if st.button("💾 保存", key="save_nick"):
             if len(nick_input) < 2:
-                st.error("2譁・ｭ嶺ｻ･荳翫〒蜈･蜉帙＠縺ｦ縺上□縺輔＞")
+                st.error("2文字以上で入力してください")
             else:
                 if save_user_nickname(username, nick_input):
-                    st.success(f"縲鶏nick_input}縲阪↓螟画峩縺励∪縺励◆・・)
+                    st.success(f"「{nick_input}」に変更しました！")
                     st.balloons()
                     st.rerun()
 
         st.markdown("---")
 
-        # 繝ｭ繧ｰ繧｢繧ｦ繝・
+        # ログアウト
         if st.button(T("logout"), key="settings_logout"):
             st.session_state["flash_user"] = ""
             st.session_state["show_settings"] = False
             st.rerun()
 
-        return  # 險ｭ螳壹・繝ｼ繧ｸ陦ｨ遉ｺ荳ｭ縺ｯ繝帙・繝繧ｳ繝ｳ繝・Φ繝・ｒ陦ｨ遉ｺ縺励↑縺・
+        return  # 設定ページ表示中はホームコンテンツを表示しない
 
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏・
-    # 繝帙・繝繝壹・繧ｸ・亥ｭｦ鄙堤音蛹悶・繧ｷ繝ｳ繝励Ν・・
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏・
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ホームページ（学習特化・シンプル）
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    # 騾｣邯壽律謨ｰ
+    # 連続日数
     streak = compute_learning_streak(username)
     if streak >= 1:
-        st.info(f"櫨 {streak}{T('streak_msg')}")
+        st.info(f"🔥 {streak}{T('streak_msg')}")
     else:
         st.info(T("streak_zero"))
 
-    # 謨呎攝縺梧悴驕ｸ謚槭・蝣ｴ蜷医・險ｭ螳壹∈隱伜ｰ・
+    # 教材が未選択の場合は設定へ誘導
     sets = load_flashcard_sets()
     if not sets:
         st.warning(T("no_material"))
@@ -1038,24 +1038,24 @@ def show_home(username):
     cards = load_flashcards_by_set(selected_set_id)
     total = len(cards)
 
-    # 謨呎攝諠・ｱ・医さ繝ｳ繝代け繝・陦鯉ｼ・
+    # 教材情報（コンパクト1行）
     set_name_map = {s["id"]: s["set_name"] for s in sets}
     st.markdown(
-        f"<div class='mini-card'>答 <b>{set_name_map[selected_set_id]}</b>"
-        f"縲{info.get('category','')} / {info.get('grade','')}</div>",
+        f"<div class='mini-card'>📚 <b>{set_name_map[selected_set_id]}</b>"
+        f"　{info.get('category','')} / {info.get('grade','')}</div>",
         unsafe_allow_html=True,
     )
 
-    # 騾ｲ謐励ヰ繝ｼ
+    # 進捗バー
     if total > 0:
         correct = count_correct_once_in_set(username, selected_set_id)
         progress_val = correct / total
         st.progress(progress_val)
-        st.caption(f"笨・{correct} / {total} {T('progress_caption')}・・int(progress_val*100)}%・・)
+        st.caption(f"✅ {correct} / {total} {T('progress_caption')}（{int(progress_val*100)}%）")
 
     st.markdown("---")
 
-    # 笏笏 莉頑律繧・ｋ縺薙→・医Γ繧､繝ｳ・・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── 今日やること（メイン） ──────────────────
     st.markdown(f"### {T('today_task')}")
     new_count, due_count = count_new_and_due_for_set(username, selected_set_id)
     plan = load_study_plan(username)
@@ -1064,13 +1064,13 @@ def show_home(username):
         f'<span class="badge-yellow">{T("badge_due")} {due_count}{T("cards")}</span>',
         unsafe_allow_html=True,
     )
-    st.caption(f"套 1譌･縺ｮ繝壹・繧ｹ: {plan['effective']}譫・)
+    st.caption(f"📅 1日のペース: {plan['effective']}枚")
     st.markdown("")
 
     total_today = new_count + due_count
     if total_today > 0:
         if st.button(
-            "噫 莉頑律縺ｮ蟄ｦ鄙偵ｒ縺ｯ縺倥ａ繧具ｼ・,
+            "🚀 今日の学習をはじめる！",
             use_container_width=True,
             type="primary",
             key="btn_start_learning",
@@ -1078,23 +1078,23 @@ def show_home(username):
             st.session_state.flash_step = "select"
             st.rerun()
     else:
-        # 莉頑律縺ｮ蛻・′邨ゅｏ縺｣縺溷ｴ蜷・
+        # 今日の分が終わった場合
         st.success(T("all_done"))
         st.markdown(f"#### {T('more_study')}")
 
-        # 遘ｰ蜿ｷ陦ｨ遉ｺ
+        # 称号表示
         total_xp = calc_total_xp(username)
         level = calc_level(total_xp)
         titles = {
-            1: ("験", "縺溘ｓ縺・縺ｮ 縺溘∪縺・),
-            2: ("当", "縺溘ｓ縺・縺ｮ 縺溘∪縺・"),
-            3: ("笞｡", "縺溘ｓ縺・縺ｮ 縺帙ｓ縺・),
-            4: ("櫨", "縺溘ｓ縺・縺ｮ 縺溘▽縺倥ｓ"),
-            5: ("虫", "縺溘ｓ縺・縺ｮ 縺医＞繧・≧"),
-            6: ("荘", "縺溘ｓ縺・縺ｮ 縺翫≧"),
-            7: ("検", "縺溘ｓ縺・縺ｮ 縺ｧ繧薙○縺､"),
+            1: ("🌱", "たんご の たまご"),
+            2: ("📖", "たんご の たまご+"),
+            3: ("⚡", "たんご の せんし"),
+            4: ("🔥", "たんご の たつじん"),
+            5: ("💎", "たんご の えいゆう"),
+            6: ("👑", "たんご の おう"),
+            7: ("🌟", "たんご の でんせつ"),
         }
-        icon, title = titles.get(min(level, 7), ("検", "縺溘ｓ縺・縺ｮ 縺ｧ繧薙○縺､"))
+        icon, title = titles.get(min(level, 7), ("🌟", "たんご の でんせつ"))
         st.markdown(
             f"<div style='background:linear-gradient(135deg,#667eea,#764ba2);"
             f"border-radius:16px;padding:14px 20px;color:white;"
@@ -1157,7 +1157,7 @@ def show_home(username):
                     st.session_state["flash_mode"] = "study"
                     st.rerun()
 
-        # 繧ｿ繧､繝繧｢繧ｿ繝・け繝懊ち繝ｳ
+        # タイムアタックボタン
         if st.button(T("ta_btn"), key="extra_ta", use_container_width=True):
             cards_all = load_flashcards_by_set(selected_set_id)
             if cards_all:
@@ -1172,7 +1172,7 @@ def show_home(username):
                 st.session_state["flash_mode"] = "time_attack"
                 st.rerun()
 
-        # 繧ｹ繝医Μ繝ｼ繧ｯ諠・ｱ
+        # ストリーク情報
         streak = compute_learning_streak(username)
         if streak >= 7:
             st.success(T("daily_7"))
@@ -1305,7 +1305,7 @@ def show_study(username):
 .rate-card button:active {
     transform: scale(0.96) !important;
 }
-/* 蜷・・繧ｿ繝ｳ縺ｮ濶ｲ */
+/* 各ボタンの色 */
 div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
     background: linear-gradient(135deg, #ff4b4b, #ff6b6b) !important;
     color: white !important;
@@ -1338,7 +1338,7 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
         )
         st.progress(idx / total)
     with col_home:
-        if st.button("匠", help=T("home_btn"), use_container_width=True):
+        if st.button("🏠", help=T("home_btn"), use_container_width=True):
             st.session_state["flash_mode"] = "home"
             st.rerun()
 
@@ -1375,7 +1375,7 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             new_ef, new_iv, new_rp, next_date = sm2_update(q, ef, iv, rp)
             save_review(username, cid, q, new_ef, new_iv, new_rp, next_date)
             st.session_state["flash_session_results"].append({
-                "word": card.get("lang1", card.get("word", "")), "quality": q, "next_review": next_date
+                "word": card["word"], "quality": q, "next_review": next_date
             })
             st.session_state["flash_index"] += 1
             st.session_state["flash_show_answer"] = False
@@ -1384,7 +1384,7 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
         st.markdown("---")
         st.markdown(f"### {T('how_much')}")
 
-        # 繧ｰ繝ｩ繝・・繧ｷ繝ｧ繝ｳ蜃｡萓九ヰ繝ｼ
+        # グラデーション凡例バー
         st.markdown(
             f"""
 <div style="
@@ -1400,7 +1400,7 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             unsafe_allow_html=True,
         )
 
-        # 繝ｯ繝ｳ繧ｿ繝・・繧ｫ繝ｼ繝峨・繧ｿ繝ｳ・・蛻・縺､・・
+        # ワンタップカードボタン（1列4つ）
         c0, c1, c2, c3 = st.columns(4)
 
         with c0:
@@ -1431,7 +1431,7 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             ):
                 record_quality(5)
 
-        # 谺｡蝗槫ｾｩ鄙偵・逶ｮ螳会ｼ医・繧ｿ繝ｳ荳具ｼ・
+        # 次回復習の目安（ボタン下）
         st.markdown(
             f"""
 <div style="display:flex; justify-content:space-between;
@@ -1450,11 +1450,11 @@ div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
             st.session_state["flash_mode"] = "home"
             st.rerun()
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# 邨先棡逕ｻ髱｢・・P繝ｻ繝ｬ繝吶Ν・・
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# 結果画面（XP・レベル）
+# ─────────────────────────────
 def calc_session_xp(results):
-    """繧ｻ繝・す繝ｧ繝ｳ縺ｮ迯ｲ蠕郵P繧定ｨ育ｮ・""
+    """セッションの獲得XPを計算"""
     xp = 0
     for r in results:
         q = r["quality"]
@@ -1470,7 +1470,7 @@ def calc_session_xp(results):
 
 
 def calc_total_xp(username):
-    """邏ｯ險・P繧池eview_logs縺九ｉ險育ｮ・""
+    """累計XPをreview_logsから計算"""
     logs = load_review_logs(username)
     xp = 0
     for row in logs:
@@ -1487,14 +1487,14 @@ def calc_total_xp(username):
 
 
 def calc_level(total_xp):
-    """XP縺九ｉ繝ｬ繝吶Ν繧定ｨ育ｮ暦ｼ・PG蠑乗・髟ｷ譖ｲ邱夲ｼ・""
+    """XPからレベルを計算（RPG式成長曲線）"""
     import math
 
     return int(math.sqrt(total_xp / 10)) + 1
 
 
 def calc_level_progress(total_xp):
-    """迴ｾ繝ｬ繝吶Ν蜀・・騾ｲ謐礼紫(0.0縲・.0)繧定ｿ斐☆"""
+    """現レベル内の進捗率(0.0〜1.0)を返す"""
     import math
 
     level = calc_level(total_xp)
@@ -1507,8 +1507,8 @@ def calc_level_progress(total_xp):
 
 def load_daily_stats(username):
     """
-    驕主悉30譌･蛻・・譌･蛻･蟄ｦ鄙堤ｵｱ險医ｒ霑斐☆
-    謌ｻ繧雁､: list[dict] = [
+    過去30日分の日別学習統計を返す
+    戻り値: list[dict] = [
         {"date": "2026-03-01", "xp": 45, "cards": 10, "accuracy": 80.0},
         ...
     ]
@@ -1536,7 +1536,7 @@ def load_daily_stats(username):
         if q >= 3:
             daily[d]["correct"] += 1
 
-    # 驕主悉30譌･蛻・↓邨槭ｋ & 繧ｽ繝ｼ繝・
+    # 過去30日分に絞る & ソート
     from datetime import date, timedelta
     today = date.today()
     result = []
@@ -1558,16 +1558,16 @@ def load_daily_stats(username):
 
 def load_cumulative_xp(username):
     """
-    驕主悉30譌･蛻・・邏ｯ險・P謗ｨ遘ｻ繧定ｿ斐☆
-    謌ｻ繧雁､: list[dict] = [{"date": "...", "cumulative_xp": 120}, ...]
+    過去30日分の累計XP推移を返す
+    戻り値: list[dict] = [{"date": "...", "cumulative_xp": 120}, ...]
     """
     daily = load_daily_stats(username)
-    # 蜈ｨ螻･豁ｴ縺ｮ邏ｯ險・P縺ｮ髢句ｧ句､繧定ｨ育ｮ・
+    # 全履歴の累計XPの開始値を計算
     all_logs = load_review_logs(username)
     from datetime import date, timedelta
     cutoff = (date.today() - timedelta(days=29)).isoformat()
 
-    # cutoff莉･蜑阪・XP蜷郁ｨ・
+    # cutoff以前のXP合計
     base_xp = 0
     for row in all_logs:
         d = row.get("reviewed_at", "")[:10]
@@ -1586,11 +1586,11 @@ def load_cumulative_xp(username):
     return cumulative
 
 
-# Supabase SQL Editor 縺ｧ ta_scores 繝・・繝悶Ν繧剃ｽ懈・縺吶ｋ縺ｨ縺阪・萓具ｼ域焔蜍募ｮ溯｡鯉ｼ・
+# Supabase SQL Editor で ta_scores テーブルを作成するときの例（手動実行）:
 # CREATE TABLE IF NOT EXISTS ta_scores (
 #   id SERIAL PRIMARY KEY,
 #   username TEXT NOT NULL,
-#   nickname TEXT NOT NULL DEFAULT '縺ｪ縺・,
+#   nickname TEXT NOT NULL DEFAULT 'なし',
 #   set_id INTEGER NOT NULL,
 #   total_score INTEGER NOT NULL,
 #   correct_count INTEGER NOT NULL,
@@ -1602,24 +1602,24 @@ def load_cumulative_xp(username):
 def generate_choices(correct_card, all_cards, n=4):
     import random
     category = str(correct_card.get("category", ""))
-    if "縺ｿ繧薙↑縺ｮ譌･譛ｬ隱・ in category:
-        # 蝠城｡後・荳ｭ蝗ｽ隱・meaning)縲∵ｭ｣隗｣縺ｯ譌･譛ｬ隱・word)
-        correct_answer = correct_card.get("lang1", correct_card.get("word", ""))
+    if "みんなの日本語" in category:
+        # 問題は中国語(meaning)、正解は日本語(word)
+        correct_answer = correct_card["word"]
         others = [
-            c.get("lang1", c.get("word", "")) for c in all_cards
+            c["word"] for c in all_cards
             if c["id"] != correct_card["id"]
-            and c.get("lang1", c.get("word", "")) != correct_answer
+            and c["word"] != correct_answer
         ]
     else:
-        # 蝠城｡後・闍ｱ隱・word)縲∵ｭ｣隗｣縺ｯ譌･譛ｬ隱櫁ｨｳ(meaning)
+        # 問題は英語(word)、正解は日本語訳(meaning)
         correct_answer = correct_card["meaning"]
         others = [
             c["meaning"] for c in all_cards
             if c["id"] != correct_card["id"]
             and c["meaning"] != correct_answer
         ]
-    fallback = ["繧上°繧峨↑縺・, "縺ｹ縺､縺ｮ縺薙→縺ｰ", "縺｡縺後≧繧ゅ・",
-                "縺ｾ縺溘∋縺､縺ｮ繧ゅ・", "縺ｪ縺ｫ縺九・縺薙→"]
+    fallback = ["わからない", "べつのことば", "ちがうもの",
+                "またべつのもの", "なにかのこと"]
     while len(others) < 3:
         fb = fallback.pop(0)
         if fb not in others:
@@ -1663,7 +1663,7 @@ def save_ta_score(username, nickname, set_id, total_score,
         }).execute()
         st.cache_data.clear()
     except Exception as e:
-        st.warning(f"繧ｹ繧ｳ繧｢菫晏ｭ倥お繝ｩ繝ｼ: {e}")
+        st.warning(f"スコア保存エラー: {e}")
 
 
 @st.cache_data(ttl=30)
@@ -1696,7 +1696,7 @@ def show_time_attack(username):
     card = queue[idx]
     total = len(queue)
 
-    # 笏笏 CSS 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── CSS ──────────────────────────────────
     st.markdown("""
     <style>
     .ta-card-dark {
@@ -1713,7 +1713,7 @@ def show_time_attack(username):
         font-size: 2.8rem; font-weight: bold;
         text-align: center; font-family: monospace;
     }
-    /* 4謚槭・繧ｿ繝ｳ 譛ｪ蝗樒ｭ疲凾 */
+    /* 4択ボタン 未回答時 */
     div[data-testid="stHorizontalBlock"]
         button[kind="secondary"] {
         background: white !important;
@@ -1778,7 +1778,7 @@ def show_time_attack(username):
     </style>
     """, unsafe_allow_html=True)
 
-    # 笏笏 繝倥ャ繝繝ｼ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── ヘッダー ──────────────────────────────
     col_p, col_h = st.columns([4, 1])
     with col_p:
         st.markdown(
@@ -1788,7 +1788,7 @@ def show_time_attack(username):
         )
         st.progress(idx / total)
     with col_h:
-        if st.button("匠", key="ta_home", help=T("home_btn")):
+        if st.button("🏠", key="ta_home", help=T("home_btn")):
             st.session_state["flash_mode"] = "home"
             st.session_state["ta_choices"] = []
             st.session_state["ta_answered"] = False
@@ -1797,23 +1797,23 @@ def show_time_attack(username):
             st.session_state["flash_timer_start"] = None
             st.rerun()
 
-    # 笏笏 繧ｿ繧､繝槭・邂｡逅・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── タイマー管理 ─────────────────────────
     if st.session_state["flash_timer_start"] is None:
         st.session_state["flash_timer_start"] = time.time()
 
     elapsed = time.time() - st.session_state["flash_timer_start"]
-    limit = 10  # 遘・
+    limit = 10  # 秒
     remaining = max(0.0, limit - elapsed)
 
-    # 繧ｿ繧､繝槭・縺ｮ濶ｲ繧呈ｮ九ｊ譎る俣縺ｧ螟峨∴繧・
+    # タイマーの色を残り時間で変える
     if remaining > 6:
-        timer_color = "#00b09b"   # 邱・
+        timer_color = "#00b09b"   # 緑
     elif remaining > 3:
-        timer_color = "#ffa500"   # 繧ｪ繝ｬ繝ｳ繧ｸ
+        timer_color = "#ffa500"   # オレンジ
     else:
-        timer_color = "#ff4b4b"   # 襍､
+        timer_color = "#ff4b4b"   # 赤
 
-    # 笏笏 繧ｫ繝ｼ繝芽｡ｨ遉ｺ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── カード表示 ───────────────────────────
     if not st.session_state["ta_answered"]:
         st.markdown(
             f'<div style="font-size:0.85rem; opacity:0.6; margin-bottom:6px; '
@@ -1824,7 +1824,7 @@ def show_time_attack(username):
     else:
         render_card_back(card)
 
-    # 笏笏 繧ｿ繧､繝槭・陦ｨ遉ｺ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── タイマー表示 ─────────────────────────
     if not st.session_state["ta_answered"]:
         st.markdown(
             f'<div class="ta-timer" style="color:{timer_color};">'
@@ -1832,7 +1832,7 @@ def show_time_attack(username):
             unsafe_allow_html=True
         )
     else:
-        # 蝗樒ｭ疲ｸ医∩縺ｯ邨先棡繧ｫ繝ｩ繝ｼ縺ｧ蝗ｺ螳夊｡ｨ遉ｺ
+        # 回答済みは結果カラーで固定表示
         result_color = "#00b09b" if st.session_state["ta_correct"] else "#ff4b4b"
         result_text = (
             T("ta_correct") if st.session_state["ta_correct"] else T("ta_wrong")
@@ -1843,8 +1843,8 @@ def show_time_attack(username):
             unsafe_allow_html=True
         )
 
-    # 笏笏 4謚槭・繧ｿ繝ｳ逕滓・ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-    # 驕ｸ謚櫁い縺後↑縺・or 譁ｰ縺励＞繧ｫ繝ｼ繝峨・蝣ｴ蜷医・縺ｿ逕滓・
+    # ── 4択ボタン生成 ────────────────────────
+    # 選択肢がない or 新しいカードの場合のみ生成
     if not st.session_state["ta_choices"]:
         all_cards = load_flashcards_by_set(
             st.session_state.get("selected_set_id")
@@ -1853,10 +1853,10 @@ def show_time_attack(username):
 
     choices = st.session_state["ta_choices"]
     category = str(card.get("category", ""))
-    if "縺ｿ繧薙↑縺ｮ譌･譛ｬ隱・ in category:
-        correct_meaning = card["word"]   # 譌･譛ｬ隱槭′豁｣隗｣
+    if "みんなの日本語" in category:
+        correct_meaning = card["word"]   # 日本語が正解
     else:
-        correct_meaning = card["meaning"]  # 譌･譛ｬ隱櫁ｨｳ縺梧ｭ｣隗｣
+        correct_meaning = card["meaning"]  # 日本語訳が正解
 
     st.markdown("---")
     st.markdown(
@@ -1866,7 +1866,7 @@ def show_time_attack(username):
         unsafe_allow_html=True
     )
 
-    # 2ﾃ・ 繧ｰ繝ｪ繝・ラ縺ｧ4謚櫁｡ｨ遉ｺ
+    # 2×2 グリッドで4択表示
     row1 = st.columns(2)
     row2 = st.columns(2)
     grid = [row1[0], row1[1], row2[0], row2[1]]
@@ -1875,10 +1875,10 @@ def show_time_attack(username):
 
     for i, (col, choice) in enumerate(zip(grid, choices)):
         with col:
-            # 蝗樒ｭ泌ｾ後・濶ｲ蛻・￠
+            # 回答後の色分け
             if answered:
                 if choice == correct_meaning:
-                    # 豁｣隗｣驕ｸ謚櫁い 竊・邱代ワ繧､繝ｩ繧､繝・
+                    # 正解選択肢 → 緑ハイライト
                     st.markdown(f"""
                     <div style="background:#00b09b; color:white;
                         border-radius:16px; padding:18px 8px;
@@ -1886,12 +1886,12 @@ def show_time_attack(username):
                         font-size:1rem; min-height:80px;
                         display:flex; align-items:center;
                         justify-content:center;">
-                        笨・{choice}
+                        ✅ {choice}
                     </div>
                     """, unsafe_allow_html=True)
                 elif (not st.session_state["ta_correct"]
                       and i == st.session_state.get("ta_selected_idx")):
-                    # 閾ｪ蛻・′驕ｸ繧薙□荳肴ｭ｣隗｣ 竊・襍､繝上う繝ｩ繧､繝・
+                    # 自分が選んだ不正解 → 赤ハイライト
                     st.markdown(f"""
                     <div style="background:#ff4b4b; color:white;
                         border-radius:16px; padding:18px 8px;
@@ -1899,11 +1899,11 @@ def show_time_attack(username):
                         font-size:1rem; min-height:80px;
                         display:flex; align-items:center;
                         justify-content:center;">
-                        笶・{choice}
+                        ❌ {choice}
                     </div>
                     """, unsafe_allow_html=True)
                 else:
-                    # 縺昴・莉・竊・繧ｰ繝ｬ繝ｼ
+                    # その他 → グレー
                     st.markdown(f"""
                     <div style="background:#f0f0f0; color:#aaa;
                         border-radius:16px; padding:18px 8px;
@@ -1914,7 +1914,7 @@ def show_time_attack(username):
                     </div>
                     """, unsafe_allow_html=True)
             else:
-                # 譛ｪ蝗樒ｭ・竊・謚ｼ縺帙ｋ繝懊ち繝ｳ
+                # 未回答 → 押せるボタン
                 if st.button(choice, key=f"ta_choice_{i}",
                              use_container_width=True, type="secondary"):
                     is_correct = (choice == correct_meaning)
@@ -1923,7 +1923,7 @@ def show_time_attack(username):
                     st.session_state["ta_selected_idx"] = i
                     score = max(0, int(remaining * 10)) if is_correct else 0
                     st.session_state["flash_time_scores"].append({
-                        "word": card.get("lang1", card.get("word", "")),
+                        "word": card["word"],
                         "meaning": correct_meaning,
                         "chosen": choice,
                         "time": round(elapsed, 1),
@@ -1934,15 +1934,15 @@ def show_time_attack(username):
                     _record_ta_quality(username, card, quality)
                     st.rerun()
 
-    # 笏笏 繧ｿ繧､繝繧ｪ繝ｼ繝舌・蜃ｦ逅・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── タイムオーバー処理 ───────────────────
     if remaining <= 0 and not answered:
         st.session_state["ta_answered"] = True
         st.session_state["ta_correct"] = False
         st.session_state["ta_selected_idx"] = -1
         st.session_state["flash_time_scores"].append({
-            "word": card.get("lang1", card.get("word", "")),
+            "word": card["word"],
             "meaning": correct_meaning,
-            "chosen": "・域凾髢灘・繧鯉ｼ・,
+            "chosen": "（時間切れ）",
             "time": 10.0,
             "score": 0,
             "result": "timeout",
@@ -1950,7 +1950,7 @@ def show_time_attack(username):
         _record_ta_quality(username, card, 0)
         st.rerun()
 
-    # 笏笏 蝗樒ｭ疲ｸ医∩ 竊・谺｡縺ｸ繝懊ち繝ｳ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── 回答済み → 次へボタン ────────────────
     if answered:
         st.markdown(
             f"<div style='text-align:center; font-size:0.9rem;"
@@ -1969,7 +1969,7 @@ def show_time_attack(username):
             st.session_state["ta_selected_idx"] = -1
             st.rerun()
     else:
-        # 譛ｪ蝗樒ｭ比ｸｭ縺ｯ閾ｪ蜍墓峩譁ｰ
+        # 未回答中は自動更新
         time.sleep(0.5)
         st.rerun()
 
@@ -1980,12 +1980,12 @@ def show_ranking():
     scores = st.session_state.get("flash_time_scores", [])
     nickname = load_user_nickname(username)
 
-    # 繧ｹ繧ｳ繧｢髮・ｨ・
+    # スコア集計
     total_score = sum(s["score"] for s in scores)
     correct_count = sum(1 for s in scores if s["result"] == "correct")
     total_cards = len(scores)
 
-    # Supabase縺ｫ菫晏ｭ・
+    # Supabaseに保存
     if scores and set_id:
         save_ta_score(username, nickname, set_id,
                       total_score, correct_count, total_cards)
@@ -2014,7 +2014,7 @@ def show_ranking():
     </style>
     """, unsafe_allow_html=True)
 
-    # 繧ｹ繧ｳ繧｢陦ｨ遉ｺ
+    # スコア表示
     accuracy = correct_count / total_cards * 100 if total_cards > 0 else 0
     rec_name = nickname if nickname else username
     st.markdown(
@@ -2026,7 +2026,7 @@ def show_ranking():
         <div class="rank-score">{total_score} pts</div>
         <div style="font-size:1rem; margin-top:8px;">
             {T("rank_score_line").format(c=correct_count, t=total_cards)}
-            ・・accuracy:.0f}%・・
+            （{accuracy:.0f}%）
         </div>
         <div style="font-size:0.85rem; opacity:0.7; margin-top:4px;">
             {T("rank_record_as").format(name=rec_name)}
@@ -2036,30 +2036,30 @@ def show_ranking():
         unsafe_allow_html=True,
     )
 
-    # 蜊倩ｪ槫挨繧ｿ繧､繝荳隕ｧ
+    # 単語別タイム一覧
     st.markdown(T("rank_word_times"))
     for s in scores:
-        icon = "笨・ if s["result"] == "correct" else (
-                "竢ｰ" if s["result"] == "timeout" else "笶・)
+        icon = "✅" if s["result"] == "correct" else (
+                "⏰" if s["result"] == "timeout" else "❌")
         color = "#00b09b" if s["result"] == "correct" else "#ff4b4b"
         st.markdown(
             f'<div style="display:flex; justify-content:space-between;'
             f'padding:8px 12px; background:{color}22; border-radius:10px;'
             f'margin:4px 0; font-size:0.9rem;">'
-            f'<span>{icon} <b>{s["word"]}</b> 窶・{s["meaning"]}</span>'
+            f'<span>{icon} <b>{s["word"]}</b> — {s["meaning"]}</span>'
             f'<span style="color:{color}; font-weight:bold;">'
-            f'{s["score"]}pts ({s["time"]}遘・</span></div>',
+            f'{s["score"]}pts ({s["time"]}秒)</span></div>',
             unsafe_allow_html=True
         )
 
-    # 繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ陦ｨ遉ｺ
+    # ランキング表示
     st.markdown("---")
     st.markdown(f"### {T('rank_title')}")
     ranking = load_ta_ranking(set_id) if set_id else []
     if not ranking:
         st.info(T("rank_empty"))
     else:
-        medals = ["･・, "･・, "･・]
+        medals = ["🥇", "🥈", "🥉"]
         for i, row in enumerate(ranking):
             medal = medals[i] if i < 3 else f"{i+1}."
             cls = ["rank-1", "rank-2", "rank-3"]
@@ -2078,7 +2078,7 @@ def show_ranking():
                 unsafe_allow_html=True
             )
 
-    # 繝懊ち繝ｳ
+    # ボタン
     st.markdown("---")
     b1, b2 = st.columns(2)
     with b1:
@@ -2104,7 +2104,7 @@ def show_ranking():
 
 
 def show_word_list():
-    """莉頑律縺ｮ蜊倩ｪ樔ｸ隕ｧ繝壹・繧ｸ"""
+    """今日の単語一覧ページ"""
     queue = st.session_state.get("word_list_queue", [])
     username = st.session_state["flash_user"]
 
@@ -2113,39 +2113,39 @@ def show_word_list():
     st.markdown(T("word_list_note"))
     st.markdown("---")
 
-    # 繧ｫ繝・ざ繝ｪ蛻､螳夲ｼ域怙蛻昴・繧ｫ繝ｼ繝峨〒莉｣陦ｨ蛻､螳夲ｼ・
+    # カテゴリ判定（最初のカードで代表判定）
     category = str(queue[0].get("category", "")) if queue else ""
-    is_mnn = "縺ｿ繧薙↑縺ｮ譌･譛ｬ隱・ in category
+    is_mnn = "みんなの日本語" in category
 
-    # 繝・・繝悶Ν繝倥ャ繝繝ｼ
+    # テーブルヘッダー
     if is_mnn:
-        # 縺ｿ繧薙↑縺ｮ譌･譛ｬ隱橸ｼ壻ｸｭ蝗ｽ隱樞・譌･譛ｬ隱・
+        # みんなの日本語：中国語→日本語
         header_cols = st.columns([1, 3, 3, 3])
         header_cols[0].markdown(f"**{T('word_list_no')}**")
-        header_cols[1].markdown("**荳ｭ蝗ｽ隱橸ｼ亥撫鬘鯉ｼ・*")
-        header_cols[2].markdown(f"**{T('word_list_word')}・育ｭ斐∴・・*")
+        header_cols[1].markdown("**中国語（問題）**")
+        header_cols[2].markdown(f"**{T('word_list_word')}（答え）**")
         header_cols[3].markdown(f"**{T('word_list_reading')}**")
     else:
-        # 闍ｱ讀懶ｼ夊恭隱樞・譌･譛ｬ隱・
+        # 英検：英語→日本語
         header_cols = st.columns([1, 3, 3, 3])
         header_cols[0].markdown(f"**{T('word_list_no')}**")
         header_cols[1].markdown(f"**{T('word_list_word')}**")
         header_cols[2].markdown(f"**{T('word_list_meaning')}**")
-        header_cols[3].markdown("**逋ｺ髻ｳ / 隱ｭ縺ｿ**")
+        header_cols[3].markdown("**発音 / 読み**")
 
     st.markdown("<hr style='margin:4px 0 8px 0;'>", unsafe_allow_html=True)
 
-    # 蜊倩ｪ櫁｡・
+    # 単語行
     for i, card in enumerate(queue):
         row_bg = "#f8f9ff" if i % 2 == 0 else "#ffffff"
         cols = st.columns([1, 3, 3, 3])
 
         if is_mnn:
-            meaning_zh = card.get("meaning", "")    # 荳ｭ蝗ｽ隱橸ｼ亥撫鬘鯉ｼ・
-            word       = card.get("word", "")        # 譌･譛ｬ隱橸ｼ育ｭ斐∴・・
+            meaning_zh = card.get("meaning", "")    # 中国語（問題）
+            word       = card.get("word", "")        # 日本語（答え）
             reading    = card.get("reading", "")
             accent     = card.get("phonetic", "")
-            reading_str = f"{reading}縲{accent}" if accent else reading
+            reading_str = f"{reading}　{accent}" if accent else reading
 
             cols[0].markdown(
                 f"<div style='background:{row_bg};padding:6px 4px;"
@@ -2172,7 +2172,7 @@ def show_word_list():
                 unsafe_allow_html=True
             )
         else:
-            word     = card.get("lang1", card.get("word", ""))
+            word     = card.get("word", "")
             meaning  = card.get("meaning", "")
             phonetic = card.get("phonetic", "")
             reading  = card.get("reading", "")
@@ -2205,7 +2205,7 @@ def show_word_list():
 
     st.markdown("---")
 
-    # 繝懊ち繝ｳ
+    # ボタン
     col_back, col_start = st.columns([1, 2])
     with col_back:
         if st.button(T("word_list_back"), use_container_width=True):
@@ -2239,7 +2239,7 @@ def show_result():
         else 0
     )
 
-    # 笏笏 CSS 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── CSS ──────────────────────────────────
     st.markdown(
         """
     <style>
@@ -2282,11 +2282,11 @@ def show_result():
         unsafe_allow_html=True,
     )
 
-    # 笏笏 闃ｱ轣ｫ貍泌・ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── 花火演出 ─────────────────────────────
     if accuracy >= 80:
         st.balloons()
 
-    # 笏笏 繝偵・繝ｭ繝ｼ繝舌リ繝ｼ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── ヒーローバナー ────────────────────────
     if accuracy == 100:
         title_text = T("result_hero_100_title")
         sub_text = T("result_hero_100_sub")
@@ -2311,7 +2311,7 @@ def show_result():
         unsafe_allow_html=True,
     )
 
-    # 笏笏 4謖・ｨ吶き繝ｼ繝会ｼ・陦鯉ｼ俄楳笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── 4指標カード（1行）────────────────────
     c1, c2, c3, c4 = st.columns(4)
     stats = [
         (c1, T("perfect_lbl"), len(perfect), "#667eea"),
@@ -2333,9 +2333,9 @@ def show_result():
 
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
-    # 笏笏 繝ｬ繝吶Ν繝ｻXP繝舌・ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── レベル・XPバー ───────────────────────
     st.markdown("---")
-    st.markdown(f"### 式 Lv.{level} 窶・{T('total_xp_lbl')} {total_xp} XP")
+    st.markdown(f"### 🎮 Lv.{level} — {T('total_xp_lbl')} {total_xp} XP")
     st.markdown(
         f"""
     <div class="level-bar-wrap">
@@ -2348,7 +2348,7 @@ def show_result():
         unsafe_allow_html=True,
     )
 
-    # 笏笏 蜊倩ｪ槫挨邨先棡・医ヴ繝ｫ陦ｨ遉ｺ・俄楳笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── 単語別結果（ピル表示）────────────────
     st.markdown("---")
     st.markdown(T("summary_title"))
 
@@ -2359,7 +2359,7 @@ def show_result():
         if covered:
             pills = " ".join(
                 [
-                    f'<span class="word-pill" style="background:#00b09b;">{r.get("lang1", r.get("word", ""))}</span>'
+                    f'<span class="word-pill" style="background:#00b09b;">{r["word"]}</span>'
                     for r in covered
                 ]
             )
@@ -2373,11 +2373,11 @@ def show_result():
         if retry:
             pills = " ".join(
                 [
-                    f'<span class="word-pill" style="background:#ffa500;">{r.get("lang1", r.get("word", ""))}</span>'
+                    f'<span class="word-pill" style="background:#ffa500;">{r["word"]}</span>'
                     for r in ok
                 ]
                 + [
-                    f'<span class="word-pill" style="background:#ff4b4b;">{r.get("lang1", r.get("word", ""))}</span>'
+                    f'<span class="word-pill" style="background:#ff4b4b;">{r["word"]}</span>'
                     for r in ng
                 ]
             )
@@ -2385,21 +2385,21 @@ def show_result():
         else:
             st.caption(T("none_perfect"))
 
-    # 笏笏 谺｡蝗槫ｾｩ鄙呈律縺ｮ莠亥相 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── 次回復習日の予告 ─────────────────────
     if ng:
         st.markdown("---")
         st.info(
-            f"庁 **{len(ng)}{T('cards')}**{T('ng_notice_tail')}"
+            f"💡 **{len(ng)}{T('cards')}**{T('ng_notice_tail')}"
         )
 
-    # 笏笏 謌宣聞繧ｰ繝ｩ繝・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── 成長グラフ ───────────────────────────
     st.markdown("---")
     st.markdown(f"### {T('graph_title')}")
 
     daily_stats = load_daily_stats(username)
     cum_stats = load_cumulative_xp(username)
 
-    # 蟄ｦ鄙偵′縺ゅ▲縺滓律縺縺第歓蜃ｺ
+    # 学習があった日だけ抽出
     active_days = [d for d in daily_stats if d["cards"] > 0]
 
     if len(active_days) < 2:
@@ -2407,10 +2407,10 @@ def show_result():
     else:
         tab1, tab2, tab3 = st.tabs([T("tab_xp"), T("tab_cards"), T("tab_acc")])
 
-        # 笏笏 Tab1: 邏ｯ險・P謚倥ｌ邱壹げ繝ｩ繝・笏笏笏笏笏笏笏笏笏笏
+        # ── Tab1: 累計XP折れ線グラフ ──────────
         with tab1:
             df_cum = pd.DataFrame(cum_stats)
-            # 蟄ｦ鄙偵・縺ゅｋ譌･縺縺代・繝ｼ繧ｫ繝ｼ繧貞ｼｷ隱ｿ
+            # 学習のある日だけマーカーを強調
             df_cum["has_activity"] = df_cum["date"].isin(
                 [d["date"] for d in active_days]
             )
@@ -2443,11 +2443,11 @@ def show_result():
                 hovermode="x unified",
             )
             st.plotly_chart(fig1, use_container_width=True)
-            # 邱丞粋繧ｳ繝｡繝ｳ繝・
+            # 総合コメント
             total_active = len(active_days)
             st.caption(T("study_days_caption").format(n=total_active))
 
-        # 笏笏 Tab2: 譌･蛻･蟄ｦ鄙呈椢謨ｰ譽偵げ繝ｩ繝・笏笏笏笏笏笏笏笏
+        # ── Tab2: 日別学習枚数棒グラフ ────────
         with tab2:
             df_daily = pd.DataFrame(daily_stats)
             fig2 = go.Figure()
@@ -2481,7 +2481,7 @@ def show_result():
                     )
                 )
 
-        # 笏笏 Tab3: 譌･蛻･豁｣隗｣邇・釜繧檎ｷ壹げ繝ｩ繝・笏笏笏笏笏笏
+        # ── Tab3: 日別正解率折れ線グラフ ──────
         with tab3:
             df_acc = pd.DataFrame([
                 d for d in daily_stats
@@ -2504,7 +2504,7 @@ def show_result():
                     + T("chart_acc_name")
                     + ": %{y:.1f}%<extra></extra>",
                 ))
-                # 80%繝ｩ繧､繝ｳ繧堤せ邱壹〒霑ｽ蜉
+                # 80%ラインを点線で追加
                 fig3.add_hline(
                     y=80,
                     line_dash="dot",
@@ -2526,7 +2526,7 @@ def show_result():
                 avg_acc = df_acc["accuracy"].mean()
                 st.caption(T("avg_acc_caption").format(a=avg_acc))
 
-    # 笏笏 繧｢繧ｯ繧ｷ繝ｧ繝ｳ繝懊ち繝ｳ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── アクションボタン ─────────────────────
     st.markdown("---")
     b1, b2 = st.columns(2)
     with b1:
@@ -2536,11 +2536,11 @@ def show_result():
             st.rerun()
     with b2:
         if st.button(T("retry_btn"), use_container_width=True):
-            ng_words = [r.get("lang1", r.get("word", "")) for r in ng + ok]
+            ng_words = [r["word"] for r in ng + ok]
             selected_set_id = st.session_state.get("selected_set_id")
             if selected_set_id:
                 all_cards = load_flashcards_by_set(selected_set_id)
-                retry_queue = [c for c in all_cards if c.get("lang1", c.get("word", "")) in ng_words]
+                retry_queue = [c for c in all_cards if c["word"] in ng_words]
                 if retry_queue:
                     random.shuffle(retry_queue)
                     st.session_state["flash_queue"] = retry_queue
@@ -2555,27 +2555,27 @@ def show_result():
 
 
 # ==========================================================
-# 笨・STEP1: 繧ｻ繝・ヨ驕ｸ謚・& 遽・峇謖・ｮ壹・繝ｼ繧ｸ・医す繝ｳ繝励Ν遽・峇謖・ｮ夂沿・・
+# ✅ STEP1: セット選択 & 範囲指定ページ（シンプル範囲指定版）
 # ==========================================================
 def show_step1_select():
-    st.markdown("## 笨・STEP 1繝ｻ莉頑律隕壹∴繧句腰隱槭ｒ驕ｸ縺ｼ縺・)
-    st.caption("繧ｻ繝・ヨ繧帝∈繧薙〒縲∬ｦ壹∴縺溘＞遽・峇繧呈欠螳壹＠縺ｦ縺上□縺輔＞縲・)
+    st.markdown("## ✅ STEP 1・今日覚える単語を選ぼう")
+    st.caption("セットを選んで、覚えたい範囲を指定してください。")
 
     sets = load_flashcard_sets()
     if not sets:
-        st.warning("繧ｻ繝・ヨ縺檎匳骭ｲ縺輔ｌ縺ｦ縺・∪縺帙ｓ縲・)
-        if st.button("竊・繝帙・繝縺ｫ謌ｻ繧・):
+        st.warning("セットが登録されていません。")
+        if st.button("← ホームに戻る"):
             st.session_state.flash_step = "home"
             st.rerun()
         return
 
     set_labels = [
-        f"{s['set_name']}・・s.get('category', '')}"
-        f"{' ' + s.get('grade', '') if s.get('grade') else ''}・・
+        f"{s['set_name']}（{s.get('category', '')}"
+        f"{' ' + s.get('grade', '') if s.get('grade') else ''}）"
         for s in sets
     ]
     selected_idx = st.selectbox(
-        "繧ｻ繝・ヨ繧帝∈繧薙〒縺上□縺輔＞",
+        "セットを選んでください",
         range(len(sets)),
         format_func=lambda i: set_labels[i],
         key="step1_set_select",
@@ -2585,16 +2585,16 @@ def show_step1_select():
 
     words = load_flashcards_for_step1(chosen_set_id)
     if not words:
-        st.info("縺薙・繧ｻ繝・ヨ縺ｫ縺ｯ蜊倩ｪ槭′逋ｻ骭ｲ縺輔ｌ縺ｦ縺・∪縺帙ｓ縲・)
-        if st.button("竊・謌ｻ繧・, key="step1_back_empty"):
+        st.info("このセットには単語が登録されていません。")
+        if st.button("← 戻る", key="step1_back_empty"):
             st.session_state.flash_step = "home"
             st.rerun()
         return
 
-    # item_no 縺ｧ繧ｽ繝ｼ繝医・min/max 繧貞叙蠕・
+    # item_no でソート・min/max を取得
     item_nos = [w["item_no"] for w in words if w.get("item_no") is not None]
     if not item_nos:
-        st.warning("蝠城｡檎分蜿ｷ縺檎匳骭ｲ縺輔ｌ縺ｦ縺・∪縺帙ｓ縲・)
+        st.warning("問題番号が登録されていません。")
         return
 
     min_no = min(item_nos)
@@ -2604,19 +2604,19 @@ def show_step1_select():
     st.markdown(
         f'<div style="background:#f0f4ff;border-left:4px solid #4C6EF5;'
         f'padding:10px 16px;border-radius:0 8px 8px 0;margin-bottom:16px;">'
-        f'<span style="font-weight:bold;color:#4C6EF5;">答 {chosen_set["set_name"]}</span>'
+        f'<span style="font-weight:bold;color:#4C6EF5;">📚 {chosen_set["set_name"]}</span>'
         f'<span style="color:#888;font-size:0.85rem;margin-left:8px;">'
-        f'蜈ｨ {len(words)} 蜊倩ｪ橸ｼ・o.{min_no} 縲・No.{max_no}・・/span>'
+        f'全 {len(words)} 単語（No.{min_no} 〜 No.{max_no}）</span>'
         f"</div>",
         unsafe_allow_html=True,
     )
 
-    st.markdown("**菴慕分縺九ｉ菴慕分繧定ｦ壹∴縺ｾ縺吶°・・*")
+    st.markdown("**何番から何番を覚えますか？**")
 
     col_start, col_end = st.columns(2)
     with col_start:
         start_no = st.number_input(
-            "髢句ｧ狗分蜿ｷ",
+            "開始番号",
             min_value=min_no,
             max_value=max_no,
             value=min_no,
@@ -2625,7 +2625,7 @@ def show_step1_select():
         )
     with col_end:
         end_no = st.number_input(
-            "邨ゆｺ・分蜿ｷ",
+            "終了番号",
             min_value=min_no,
             max_value=max_no,
             value=max_no,
@@ -2633,9 +2633,9 @@ def show_step1_select():
             key="step1_end_no",
         )
 
-    # 遽・峇蜀・・蜊倩ｪ槭ｒ謚ｽ蜃ｺ
+    # 範囲内の単語を抽出
     if start_no > end_no:
-        st.warning("笞・・髢句ｧ狗分蜿ｷ縺ｯ邨ゆｺ・分蜿ｷ莉･荳九↓縺励※縺上□縺輔＞縲・)
+        st.warning("⚠️ 開始番号は終了番号以下にしてください。")
         selected_words = []
     else:
         selected_words = [
@@ -2645,22 +2645,22 @@ def show_step1_select():
             and start_no <= w["item_no"] <= end_no
         ]
 
-    # 繝励Ξ繝薙Η繝ｼ陦ｨ遉ｺ
+    # プレビュー表示
     st.markdown("---")
     if selected_words:
         st.markdown(
             f'<div style="background:#fff9f0;border:1px solid #F0C040;'
             f'border-radius:8px;padding:12px 16px;text-align:center;">'
             f'<span style="font-size:1.1rem;font-weight:bold;color:#e67e00;">'
-            f"No.{start_no} 縲・No.{end_no}</span>"
+            f"No.{start_no} 〜 No.{end_no}</span>"
             f'<span style="color:#888;margin-left:8px;font-size:0.9rem;">'
-            f"・・len(selected_words)} 蜊倩ｪ橸ｼ・/span>"
+            f"（{len(selected_words)} 単語）</span>"
             f"</div>",
             unsafe_allow_html=True,
         )
 
-        # 驕ｸ謚槭＆繧後◆蜊倩ｪ槭ｒ蜈ｨ陦ｨ遉ｺ
-        st.markdown("**搭 驕ｸ謚槭＆繧後◆蜊倩ｪ橸ｼ・*")
+        # 選択された単語を全表示
+        st.markdown("**📋 選択された単語：**")
 
         def safe(v):
             return str(v) if v and str(v) not in ("None", "nan", "") else ""
@@ -2683,32 +2683,32 @@ def show_step1_select():
             st.markdown(
                 f'<div style="border-left:3px solid #dfe6e9;'
                 f'padding:6px 12px;margin-bottom:4px;">'
-                f'<span style="font-size:0.72rem;color:#aaa;">No.{no}</span>縲'
+                f'<span style="font-size:0.72rem;color:#aaa;">No.{no}</span>　'
                 f'<span style="font-weight:bold;font-size:0.92rem;">{lang1}</span>'
                 + (
                     f'<span style="font-size:0.78rem;color:#888;margin-left:4px;">{lang1_sub}</span>'
                     if lang1_sub
                     else ""
                 )
-                + '<span style="color:#bbb;margin:0 8px;">竊・/span>'
+                + '<span style="color:#bbb;margin:0 8px;">→</span>'
                 + f'<span style="font-size:0.92rem;color:#2d3436;">{lang2}</span>'
                 + sub_html
                 + "</div>",
                 unsafe_allow_html=True,
             )
     else:
-        st.info("縺薙・遽・峇縺ｫ蜊倩ｪ槭′縺ゅｊ縺ｾ縺帙ｓ縲・)
+        st.info("この範囲に単語がありません。")
 
-    # 螳御ｺ・・繧ｿ繝ｳ
+    # 完了ボタン
     st.markdown("---")
     col_back, col_next = st.columns([1, 3])
     with col_back:
-        if st.button("竊・繝帙・繝", key="step1_back", use_container_width=True):
+        if st.button("← ホーム", key="step1_back", use_container_width=True):
             st.session_state.flash_step = "home"
             st.rerun()
     with col_next:
         if st.button(
-            f"当 縺薙・ {len(selected_words)} 蜊倩ｪ槭〒蟄ｦ鄙偵ｒ縺ｯ縺倥ａ繧・竊・,
+            f"📖 この {len(selected_words)} 単語で学習をはじめる →",
             type="primary",
             use_container_width=True,
             key="step1_next",
@@ -2721,7 +2721,7 @@ def show_step1_select():
 
 
 # ==========================================================
-# 搭 STEP2: 蜊倩ｪ樔ｸ隕ｧ繝壹・繧ｸ・亥ｷｦ・壼撫鬘・/ 蜿ｳ・壼句挨繝医げ繝ｫ縺ｧ遲斐∴陦ｨ遉ｺ・・
+# 📋 STEP2: 単語一覧ページ（左：問題 / 右：個別トグルで答え表示）
 # ==========================================================
 def show_step2_list():
     words = st.session_state.get("word_list_queue", [])
@@ -2733,12 +2733,12 @@ def show_step2_list():
     def safe(v):
         return str(v) if v and str(v) not in ("None", "nan", "") else ""
 
-    # 笏笏 繧ｻ繝・す繝ｧ繝ｳ蛻晄悄蛹・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── セッション初期化 ──────────────────────────
     if st.session_state.get("fc_words_snapshot") != [w["id"] for w in words]:
         st.session_state["fc_index"] = 0
         st.session_state["fc_show_ans"] = False
-        st.session_state["fc_known"] = []  # 遏･縺｣縺ｦ縺溘き繝ｼ繝迂D
-        st.session_state["fc_unknown"] = []  # 遏･繧峨↑縺九▲縺溘き繝ｼ繝迂D
+        st.session_state["fc_known"] = []  # 知ってたカードID
+        st.session_state["fc_unknown"] = []  # 知らなかったカードID
         st.session_state["fc_start_time"] = None
         st.session_state["fc_phase"] = "study"  # study / result / retry
         st.session_state["fc_retry_words"] = []
@@ -2746,15 +2746,15 @@ def show_step2_list():
 
     phase = st.session_state.get("fc_phase", "study")
 
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤
-    # PHASE: result・亥・繧ｫ繝ｼ繝牙ｮ御ｺ・ｾ後・邨先棡逕ｻ髱｢・・
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE: result（全カード完了後の結果画面）
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     if phase == "result":
         known_ids = st.session_state.get("fc_known", [])
         unknown_ids = st.session_state.get("fc_unknown", [])
         total = len(known_ids) + len(unknown_ids)
 
-        st.markdown("## 脂 邨先棡逋ｺ陦ｨ・・)
+        st.markdown("## 🎉 結果発表！")
         st.markdown("---")
 
         col_k, col_u = st.columns(2)
@@ -2762,7 +2762,7 @@ def show_step2_list():
             st.markdown(
                 f'<div style="background:#f0fff4;border-radius:12px;padding:20px;text-align:center;">'
                 f'<div style="font-size:2rem;font-weight:bold;color:#00b894;">{len(known_ids)}</div>'
-                f'<div style="font-size:0.9rem;color:#636e72;">笨・遏･縺｣縺ｦ縺・/div>'
+                f'<div style="font-size:0.9rem;color:#636e72;">✅ 知ってた</div>'
                 f"</div>",
                 unsafe_allow_html=True,
             )
@@ -2770,7 +2770,7 @@ def show_step2_list():
             st.markdown(
                 f'<div style="background:#fff5f5;border-radius:12px;padding:20px;text-align:center;">'
                 f'<div style="font-size:2rem;font-weight:bold;color:#e17055;">{len(unknown_ids)}</div>'
-                f'<div style="font-size:0.9rem;color:#636e72;">笶・遏･繧峨↑縺九▲縺・/div>'
+                f'<div style="font-size:0.9rem;color:#636e72;">❌ 知らなかった</div>'
                 f"</div>",
                 unsafe_allow_html=True,
             )
@@ -2780,20 +2780,20 @@ def show_step2_list():
         if total > 0:
             pct = int(len(known_ids) / total * 100)
             st.progress(pct / 100)
-            st.caption(f"豁｣遲皮紫・嘴pct}%縲・・len(known_ids)} / {total} 隱橸ｼ・)
+            st.caption(f"正答率：{pct}%　（{len(known_ids)} / {total} 語）")
 
         st.markdown("---")
 
-        # 繝懊ち繝ｳ鄒､
+        # ボタン群
         col_b1, col_b2, col_b3 = st.columns(3)
         with col_b1:
-            if st.button("竊・蜊倩ｪ槭ｒ驕ｸ縺ｳ逶ｴ縺・, use_container_width=True, key="res_back"):
+            if st.button("← 単語を選び直す", use_container_width=True, key="res_back"):
                 st.session_state.flash_step = "select"
                 st.rerun()
         with col_b2:
             if unknown_ids:
                 if st.button(
-                    "煤 遏･繧峨↑縺九▲縺溷腰隱槭ｒ蜀肴倦謌ｦ",
+                    "🔁 知らなかった単語を再挑戦",
                     use_container_width=True,
                     type="primary",
                     key="res_retry",
@@ -2809,9 +2809,9 @@ def show_step2_list():
                     st.session_state["fc_words_snapshot"] = None
                     st.rerun()
             else:
-                st.success("蜈ｨ驛ｨ遏･縺｣縺ｦ縺滂ｼ∝ｮ檎挑縺ｧ縺咀沁・)
+                st.success("全部知ってた！完璧です🎊")
         with col_b3:
-            if st.button("笨・蜊倩ｪ槭メ繧ｧ繝・け縺ｸ騾ｲ繧 竊・, use_container_width=True, key="res_next"):
+            if st.button("✅ 単語チェックへ進む →", use_container_width=True, key="res_next"):
                 st.session_state["flash_queue"] = list(words)
                 st.session_state["flash_index"] = 0
                 st.session_state["flash_session_results"] = []
@@ -2821,9 +2821,9 @@ def show_step2_list():
                 st.rerun()
         return
 
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤
-    # PHASE: retry・育衍繧峨↑縺九▲縺溷腰隱槭・蜀肴倦謌ｦ・・
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE: retry（知らなかった単語の再挑戦）
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     if phase == "retry":
         words = st.session_state.get("fc_retry_words", [])
         if not words:
@@ -2831,9 +2831,9 @@ def show_step2_list():
             st.rerun()
             return
 
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤
-    # PHASE: study / retry 蜈ｱ騾夲ｼ医き繝ｼ繝芽｡ｨ遉ｺ・・
-    # 笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤笏≫煤
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # PHASE: study / retry 共通（カード表示）
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     idx = st.session_state.get("fc_index", 0)
     show_ans = st.session_state.get("fc_show_ans", False)
 
@@ -2852,14 +2852,14 @@ def show_step2_list():
     item_no = w.get("item_no")
     page_val = safe(w.get("page_range", ""))
 
-    # 繧ｿ繧､繝槭・髢句ｧ具ｼ医き繝ｼ繝芽｡ｨ遉ｺ譎ゑｼ・
+    # タイマー開始（カード表示時）
     import time
 
     if st.session_state.get("fc_start_time") is None:
         st.session_state["fc_start_time"] = time.time()
 
-    # 笏笏 繝倥ャ繝繝ｼ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-    phase_label = "煤 蜀肴倦謌ｦ繝｢繝ｼ繝・ if phase == "retry" else "当 STEP 2繝ｻ繝輔Λ繝・す繝･繧ｫ繝ｼ繝・
+    # ── ヘッダー ──────────────────────────────
+    phase_label = "🔁 再挑戦モード" if phase == "retry" else "📖 STEP 2・フラッシュカード"
     st.markdown(f"## {phase_label}")
 
     prog_col, count_col = st.columns([4, 1])
@@ -2872,19 +2872,19 @@ def show_step2_list():
             unsafe_allow_html=True,
         )
 
-    # 繝舌ャ繧ｸ
+    # バッジ
     badge_parts = []
     if page_val:
-        badge_parts.append(f"塘 {page_val}")
+        badge_parts.append(f"📄 {page_val}")
     if item_no is not None:
         badge_parts.append(f"No.{item_no}")
-    badge_str = "縲".join(badge_parts)
+    badge_str = "　".join(badge_parts)
 
     st.markdown("---")
 
-    # 笏笏 繧ｫ繝ｼ繝芽｡ｨ遉ｺ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+    # ── カード表示 ────────────────────────────
     if not show_ans:
-        # 陦ｨ髱｢・亥撫鬘鯉ｼ・
+        # 表面（問題）
         st.markdown(
             f'<div style="background:#f0f4ff;border-radius:16px;padding:40px 32px;'
             f'text-align:center;min-height:200px;box-shadow:0 2px 8px rgba(76,110,245,0.10);">'
@@ -2902,14 +2902,14 @@ def show_step2_list():
 
         st.markdown("")
 
-        if st.button("早 遲斐∴繧定ｦ九ｋ", type="primary", use_container_width=True, key="fc_show"):
+        if st.button("👁 答えを見る", type="primary", use_container_width=True, key="fc_show"):
             st.session_state["fc_show_ans"] = True
             st.rerun()
 
     else:
-        # 陬城擇・育ｭ斐∴・・
+        # 裏面（答え）
         elapsed = time.time() - st.session_state.get("fc_start_time", time.time())
-        elapsed_str = f"{elapsed:.1f}遘・
+        elapsed_str = f"{elapsed:.1f}秒"
 
         a_subs = [s for s in [lang2_sub, lang3, lang3_sub] if s]
         a_sub_html = "".join(
@@ -2922,11 +2922,11 @@ def show_step2_list():
             f'text-align:center;min-height:200px;box-shadow:0 2px 8px rgba(0,184,148,0.10);">'
             f'<div style="font-size:0.75rem;color:#aaa;margin-bottom:12px;">{badge_str}</div>'
             f'<div style="font-size:1rem;color:#888;margin-bottom:8px;">{lang1}'
-            + (f'縲<span style="font-size:0.85rem;">{lang1_sub}</span>' if lang1_sub else "")
+            + (f'　<span style="font-size:0.85rem;">{lang1_sub}</span>' if lang1_sub else "")
             + f"</div>"
             f'<div style="font-size:2rem;font-weight:bold;color:#00b894;">{lang2}</div>'
             f"{a_sub_html}"
-            f'<div style="font-size:0.75rem;color:#b2bec3;margin-top:16px;">竢ｱ {elapsed_str}</div>'
+            f'<div style="font-size:0.75rem;color:#b2bec3;margin-top:16px;">⏱ {elapsed_str}</div>'
             f"</div>",
             unsafe_allow_html=True,
         )
@@ -2936,7 +2936,7 @@ def show_step2_list():
         col_known, col_unknown = st.columns(2)
         with col_known:
             if st.button(
-                "笨・遏･縺｣縺ｦ縺滂ｼ・,
+                "✅ 知ってた！",
                 type="primary",
                 use_container_width=True,
                 key="fc_btn_known",
@@ -2947,7 +2947,7 @@ def show_step2_list():
                 st.session_state["fc_start_time"] = None
                 st.rerun()
         with col_unknown:
-            if st.button("笶・遏･繧峨↑縺九▲縺・, use_container_width=True, key="fc_btn_unknown"):
+            if st.button("❌ 知らなかった", use_container_width=True, key="fc_btn_unknown"):
                 st.session_state["fc_unknown"].append(w["id"])
                 st.session_state["fc_index"] += 1
                 st.session_state["fc_show_ans"] = False
@@ -2955,14 +2955,14 @@ def show_step2_list():
                 st.rerun()
 
     st.markdown("---")
-    if st.button("竊・蜊倩ｪ槭ｒ驕ｸ縺ｳ逶ｴ縺・, key="fc_back", use_container_width=False):
+    if st.button("← 単語を選び直す", key="fc_back", use_container_width=False):
         st.session_state.flash_step = "select"
         st.rerun()
 
 
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
-# 逕ｻ髱｢繝ｫ繝ｼ繝・ぅ繝ｳ繧ｰ
-# 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏
+# ─────────────────────────────
+# 画面ルーティング
+# ─────────────────────────────
 flash_step = st.session_state.get("flash_step", "home")
 
 if flash_step == "select":
@@ -2982,16 +2982,3 @@ elif (
     show_study(username)
 else:
     show_home(username)
-
-
-
-
-
-
-
-
-
-
-
-
-
