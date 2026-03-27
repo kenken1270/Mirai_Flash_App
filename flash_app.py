@@ -2554,11 +2554,11 @@ def show_result():
 
 
 # ==========================================================
-# ✅ STEP1: セット選択 & 単語選択ページ（完全書き直し版）
+# ✅ STEP1: セット選択 & 単語選択ページ（expander方式）
 # ==========================================================
 def show_step1_select():
     st.markdown("## ✅ STEP 1・今日覚える単語を選ぼう")
-    st.caption("セットを選んで、今月覚えたい単語にチェックを入れてください。")
+    st.caption("セットを選んで、覚えたい単語にチェックを入れてください。")
 
     sets = load_flashcard_sets()
     if not sets:
@@ -2590,7 +2590,7 @@ def show_step1_select():
             st.rerun()
         return
 
-    # ── 全単語のchkキーを必ずセッションに確保（タブ切替で消えない）──
+    # ── セット切り替え時に全単語をTrueで初期化 ──────────────
     if st.session_state.get("step1_checked_set_id") != chosen_set_id:
         for w in words:
             st.session_state[f"chk_{w['id']}"] = True
@@ -2599,6 +2599,13 @@ def show_step1_select():
         for w in words:
             if f"chk_{w['id']}" not in st.session_state:
                 st.session_state[f"chk_{w['id']}"] = True
+
+    all_ids = [w["id"] for w in words]
+
+    def count_selected(id_list=None):
+        if id_list is None:
+            id_list = all_ids
+        return sum(1 for wid in id_list if st.session_state.get(f"chk_{wid}", True))
 
     # ── ページ別グループ化 ────────────────────────────────
     from collections import OrderedDict
@@ -2611,18 +2618,6 @@ def show_step1_select():
         if pg not in page_groups:
             page_groups[pg] = []
         page_groups[pg].append(w)
-
-    pg_labels = list(page_groups.keys())
-    pg_words_list = list(page_groups.values())
-
-    # 全単語IDのセット（全体操作用）
-    all_ids = [w["id"] for w in words]
-
-    # ── 選択数カウント ────────────────────────────────────
-    def count_selected(id_list=None):
-        if id_list is None:
-            id_list = all_ids
-        return sum(1 for wid in id_list if st.session_state.get(f"chk_{wid}", True))
 
     # ════════════════════════════════════════════
     # 【上部】選択数 + 全体ボタン + 完了ボタン
@@ -2659,33 +2654,29 @@ def show_step1_select():
 
     st.markdown("---")
     st.markdown(
-        f"**{chosen_set['set_name']}** ・全 {len(words)} 単語 ／ {len(pg_labels)} ページ"
+        f"**{chosen_set['set_name']}** ・全 {len(words)} 単語 ／ {len(page_groups)} ページ"
     )
 
     # ════════════════════════════════════════════
-    # 【中央】ページ別タブ
+    # 【中央】ページ別 expander（折りたたみ）
     # ════════════════════════════════════════════
-    tabs = st.tabs(
-        [
-            f"📄 {lbl}（{len(pg_words_list[i])}語）"
-            for i, lbl in enumerate(pg_labels)
-        ]
-    )
+    for pg_idx, (pg_label, pg_words) in enumerate(page_groups.items()):
+        pg_ids = [w["id"] for w in pg_words]
+        pg_selected = count_selected(pg_ids)
 
-    for tab_idx, (tab, pg_label, pg_words) in enumerate(
-        zip(tabs, pg_labels, pg_words_list)
-    ):
-        with tab:
-            pg_ids = [w["id"] for w in pg_words]
-            pg_selected = count_selected(pg_ids)
-            st.caption(f"このページ: {pg_selected} / {len(pg_words)} 語 選択中")
+        # expanderのラベルに選択数を表示
+        expander_label = (
+            f"📄 {pg_label}　"
+            f"（{pg_selected} / {len(pg_words)} 語 選択中）"
+        )
 
-            # ── このページ操作（フラグ不使用・直接書き換え）──────
-            col_pg_all, col_pg_none, _ = st.columns([1.2, 1.2, 3])
+        with st.expander(expander_label, expanded=False):
+            # このページの操作ボタン
+            col_pg_all, col_pg_none, _ = st.columns([1.5, 1.5, 3])
             with col_pg_all:
                 if st.button(
                     "☑ このページ全選択",
-                    key=f"pg_all_{tab_idx}",
+                    key=f"pg_all_{pg_idx}",
                     use_container_width=True,
                 ):
                     for wid in pg_ids:
@@ -2694,7 +2685,7 @@ def show_step1_select():
             with col_pg_none:
                 if st.button(
                     "☐ このページ解除",
-                    key=f"pg_none_{tab_idx}",
+                    key=f"pg_none_{pg_idx}",
                     use_container_width=True,
                 ):
                     for wid in pg_ids:
@@ -2703,7 +2694,7 @@ def show_step1_select():
 
             st.divider()
 
-            # ── ヘッダー行 ────────────────────────────────────
+            # ヘッダー行
             _, h1, h2, h3 = st.columns([0.5, 1, 3, 2])
             with h1:
                 st.caption("No.")
@@ -2713,7 +2704,7 @@ def show_step1_select():
                 st.caption("意味")
             st.divider()
 
-            # ── 単語行 ────────────────────────────────────────
+            # 単語行
             for w in pg_words:
                 c0, c1, c2, c3 = st.columns([0.5, 1, 3, 2])
                 with c0:
